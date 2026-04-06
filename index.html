@@ -3,63 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的專屬日記平台 (雲端同步版)</title>
+    <title>我的專屬日記平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #4A90E2;
-            --bg-color: #F4F7F6;
-            --card-bg: #FFFFFF;
-            --text-main: #333333;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --border-color: #e5e7eb;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; line-height: 1.6; }
-        header { background-color: var(--primary-color); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h1 { margin: 0; font-size: 1.5em; }
+        
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 0; 
+            line-height: 1.6; 
+        }
+
+        /* 導覽列設計 */
+        nav { 
+            background-color: var(--card-bg); 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            position: sticky; 
+            top: 0; 
+            z-index: 100;
+        }
+        .nav-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 1.4em; font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 8px;}
+        .nav-menu { display: none; gap: 20px; }
+        .nav-item {
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-light);
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .nav-item:hover { background-color: var(--bg-color); color: var(--text-main); }
+        .nav-item.active { background-color: #eff6ff; color: var(--primary-color); }
+        
+        /* 使用者區塊 */
+        .user-actions { display: flex; align-items: center; gap: 15px; }
+        #user-info { font-size: 0.9em; color: var(--text-light); }
+        
+        button { 
+            background-color: var(--primary-color); color: white; border: none; 
+            padding: 8px 16px; font-size: 15px; border-radius: 6px; cursor: pointer; 
+            transition: 0.3s; display: flex; align-items: center; gap: 6px; font-weight: 500;
+        }
+        button:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-outline:hover { background-color: var(--bg-color); color: var(--text-main); }
+
+        /* 主內容區 */
         .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
-        .auth-section { text-align: center; margin-top: 50px; }
         
-        /* 隱藏未登入時不該看到的區塊 */
-        #app-content { display: none; } 
+        /* 畫面切換控制 */
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 登入警告區 */
+        .auth-section { text-align: center; margin-top: 10vh; background: var(--card-bg); padding: 40px 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .auth-section i { font-size: 3em; color: var(--primary-color); margin-bottom: 15px; }
+
+        /* 搜尋列 */
+        .search-box { 
+            width: 100%; padding: 12px 15px; font-size: 16px; border: 1px solid var(--border-color); 
+            border-radius: 8px; margin-bottom: 25px; outline: none; transition: border-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .search-box:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        /* 日記卡片 */
+        .diary-card { 
+            background: var(--card-bg); padding: 25px; border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.04); margin-bottom: 20px; 
+            border: 1px solid var(--border-color); transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .diary-card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+        .diary-date { 
+            font-size: 1.3em; font-weight: bold; color: var(--primary-color); 
+            margin-bottom: 15px; display: flex; align-items: center; gap: 8px;
+        }
+        .diary-content { white-space: pre-wrap; font-size: 1.05em; color: #374151; line-height: 1.8; }
         
-        button { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
-        button:hover { background-color: #357ABD; }
-        .logout-btn { background-color: #555; padding: 5px 10px; font-size: 14px; }
+        /* 匯入區塊 */
+        .import-card { background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        textarea { 
+            width: 100%; height: 250px; padding: 15px; border: 1px solid var(--border-color); 
+            border-radius: 8px; font-size: 15px; resize: vertical; margin: 15px 0;
+            font-family: inherit; line-height: 1.5;
+        }
+        textarea:focus { outline: none; border-color: var(--primary-color); }
         
-        .import-section { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        
-        .diary-card { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-color); margin-bottom: 20px; }
-        .diary-date { font-size: 1.2em; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
-        .diary-content { white-space: pre-wrap; }
-        
-        #loading { text-align: center; color: #777; display: none; }
+        #loading { text-align: center; color: var(--text-light); padding: 40px; font-size: 1.1em; }
+        .stats-badge { display: inline-block; background: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; margin-bottom: 15px; font-weight: bold;}
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>📖 時光日記 (雲端版)</h1>
-        <div>
-            <span id="user-info" style="margin-right: 15px; font-size: 0.9em;"></span>
-            <button id="login-btn">Google 登入</button>
-            <button id="logout-btn" class="logout-btn" style="display:none;">登出</button>
+    <nav>
+        <div class="nav-container">
+            <div class="logo"><i class="fa-solid fa-book-open"></i> 時光日記</div>
+            
+            <div class="nav-menu" id="main-nav">
+                <div class="nav-item active" onclick="switchView('diary-view', this)"><i class="fa-solid fa-list"></i> 我的日記</div>
+                <div class="nav-item" onclick="switchView('import-view', this)"><i class="fa-solid fa-cloud-arrow-up"></i> 系統設定</div>
+            </div>
+
+            <div class="user-actions">
+                <span id="user-info"></span>
+                <button id="login-btn"><i class="fa-brands fa-google"></i> 登入</button>
+                <button id="logout-btn" class="btn-outline" style="display:none;"><i class="fa-solid fa-right-from-bracket"></i> 登出</button>
+            </div>
         </div>
-    </header>
+    </nav>
 
-    <div id="auth-warning" class="auth-section">
-        <h2>請先登入以查看或匯入日記</h2>
-        <p>你的日記已受到雲端加密保護，跨裝置同步中。</p>
-    </div>
-
-    <div class="container" id="app-content">
-        <div class="import-section">
-            <h3>大量匯入日記</h3>
-            <textarea id="diary-input" placeholder="請將 Word 裡的日記全部複製貼到這裡..."></textarea><br>
-            <button id="import-btn" style="margin-top: 10px;">切分並上傳至雲端</button>
+    <div class="container">
+        
+        <div id="auth-warning" class="auth-section view-section active">
+            <i class="fa-solid fa-lock"></i>
+            <h2>專屬私密空間</h2>
+            <p style="color: var(--text-light);">請先使用 Google 帳號登入，以查看或管理您的雲端日記。</p>
         </div>
 
-        <h3 style="border-bottom: 2px solid var(--primary-color); padding-bottom: 5px;">我的日記列表</h3>
-        <div id="loading">讀取雲端資料中...</div>
-        <div id="diary-display"></div>
+        <div id="diary-view" class="view-section">
+            <div id="diary-stats" class="stats-badge" style="display:none;"></div>
+            <input type="text" id="search-box" class="search-box" placeholder="🔍 搜尋日記內容、日期或關鍵字...">
+            <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> 正在從雲端讀取記憶...</div>
+            <div id="diary-display"></div>
+        </div>
+
+        <div id="import-view" class="view-section">
+            <div class="import-card">
+                <h3><i class="fa-solid fa-file-word"></i> 大量匯入日記</h3>
+                <p style="color: var(--text-light); font-size: 0.9em;">系統會自動辨識「YYYY年MM月DD日(星期)」格式並為您自動切割存檔。</p>
+                <textarea id="diary-input" placeholder="請將 Word 裡的日記全部複製貼到這裡..."></textarea>
+                <button id="import-btn" style="width: 100%; justify-content: center; padding: 12px;"><i class="fa-solid fa-wand-magic-sparkles"></i> 開始解析並上傳至雲端</button>
+            </div>
+        </div>
+
     </div>
 
     <script type="module">
@@ -67,9 +165,7 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, query, orderBy, where, writeBatch, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // ==========================================
-        // 你的專屬 Firebase 設定 (已成功帶入)
-        // ==========================================
+        // Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyBJkRaCrafDTxj8dvjm0l82c06lkvuFZPs",
             authDomain: "jiachang-diary.firebaseapp.com",
@@ -81,117 +177,147 @@
             measurementId: "G-1FRQMJGYS7"
         };
 
-        // 初始化 Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         let currentUser = null;
+        let allDiariesData = []; // 用來儲存抓下來的日記，方便搜尋
 
-        // UI 元素綁定
+        // UI 綁定
         const loginBtn = document.getElementById('login-btn');
         const logoutBtn = document.getElementById('logout-btn');
         const importBtn = document.getElementById('import-btn');
-        const appContent = document.getElementById('app-content');
-        const authWarning = document.getElementById('auth-warning');
         const userInfo = document.getElementById('user-info');
-        const displayArea = document.getElementById('diary-display');
-        const loading = document.getElementById('loading');
+        const mainNav = document.getElementById('main-nav');
+        const searchBox = document.getElementById('search-box');
+        const diaryStats = document.getElementById('diary-stats');
 
         // 登入狀態監聽
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 loginBtn.style.display = 'none';
-                logoutBtn.style.display = 'inline-block';
-                authWarning.style.display = 'none';
-                appContent.style.display = 'block';
-                userInfo.innerText = `嗨！${user.displayName}`;
-                fetchDiaries(); // 登入成功，去雲端抓日記
+                logoutBtn.style.display = 'flex';
+                mainNav.style.display = 'flex'; // 顯示選單
+                userInfo.innerText = user.displayName;
+                
+                // 預設切換到日記列表
+                switchView('diary-view', document.querySelector('.nav-item.active'));
+                fetchDiaries();
             } else {
                 currentUser = null;
-                loginBtn.style.display = 'inline-block';
+                loginBtn.style.display = 'flex';
                 logoutBtn.style.display = 'none';
-                authWarning.style.display = 'block';
-                appContent.style.display = 'none';
+                mainNav.style.display = 'none'; // 隱藏選單
                 userInfo.innerText = '';
-                displayArea.innerHTML = '';
+                
+                // 強制切換回警告畫面
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                document.getElementById('auth-warning').classList.add('active');
             }
         });
 
-        // 登入按鈕事件
-        loginBtn.addEventListener('click', () => {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).catch((error) => alert("登入失敗：" + error.message));
+        // 登入登出
+        loginBtn.addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
+        logoutBtn.addEventListener('click', () => signOut(auth));
+
+        // 畫面切換邏輯 (掛載到全域讓 HTML 可以呼叫)
+        window.switchView = function(viewId, clickedElement) {
+            // 切換 active 樣式
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(clickedElement) clickedElement.classList.add('active');
+
+            // 切換顯示的區塊
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        };
+
+        // 搜尋功能
+        searchBox.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.diary-card');
+            
+            cards.forEach(card => {
+                const text = card.innerText.toLowerCase();
+                if(text.includes(keyword)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         });
 
-        // 登出按鈕事件
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth);
-        });
-
-        // 匯入按鈕事件
+        // 匯入日記
         importBtn.addEventListener('click', async () => {
             const input = document.getElementById('diary-input').value;
-            if (!input.trim()) return alert("請先貼上日記內容！");
+            if (!input.trim()) return alert("請先貼上日記內容喔！");
             
             importBtn.disabled = true;
-            importBtn.innerText = "上傳中請稍候...";
+            importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 上傳中請稍候...';
 
             const regex = /(\d{4}年\d{2}月\d{2}日\([一二三四五六日]\))/g;
             const parts = input.split(regex);
-            
-            // 使用 Batch 批次上傳，加快速度
             const batch = writeBatch(db);
             let count = 0;
+            let wordCount = 0;
 
             for (let i = 1; i < parts.length; i += 2) {
                 const dateTitle = parts[i];
                 const content = parts[i+1] ? parts[i+1].trim() : "";
                 
                 if (dateTitle) {
-                    // 把中文日期轉成 YYYY-MM-DD 方便未來排序
                     const sortDate = dateTitle.substring(0,4) + '-' + dateTitle.substring(5,7) + '-' + dateTitle.substring(8,10);
-                    
                     const newDiaryRef = doc(collection(db, "diaries"));
                     batch.set(newDiaryRef, {
-                        userId: currentUser.uid, // 綁定這是「誰」的日記
+                        userId: currentUser.uid,
                         title: dateTitle,
                         text: content,
                         sortDate: sortDate,
                         timestamp: new Date()
                     });
                     count++;
+                    wordCount += content.length;
                 }
             }
 
             if (count === 0) {
-                alert("找不到符合格式的日期開頭！");
-                importBtn.disabled = false;
-                importBtn.innerText = "切分並上傳至雲端";
+                alert("找不到符合格式的日期開頭！請確認格式是否為「YYYY年MM月DD日(四)」");
+                resetImportBtn();
                 return;
             }
 
             try {
-                await batch.commit(); // 一口氣把所有日記寫入雲端
-                alert(`太棒了！成功解析並上傳 ${count} 篇日記至雲端！`);
+                await batch.commit();
+                alert(`太棒了！成功上傳 ${count} 篇日記，共記錄了 ${wordCount} 個字！\n現在將為您切換至日記列表。`);
                 document.getElementById('diary-input').value = "";
-                fetchDiaries(); // 重新抓取
+                
+                // 自動切回列表並重新抓資料
+                document.querySelector('.nav-item').click(); 
+                fetchDiaries();
             } catch (error) {
-                console.error("上傳失敗", error);
-                alert("上傳失敗，請確認 Firebase 資料庫(Firestore)的權限規則是否已設為測試模式。");
+                console.error(error);
+                alert("上傳失敗，請稍後再試。");
             } finally {
-                importBtn.disabled = false;
-                importBtn.innerText = "切分並上傳至雲端";
+                resetImportBtn();
             }
         });
 
-        // 從雲端抓取日記並顯示
+        function resetImportBtn() {
+            importBtn.disabled = false;
+            importBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> 開始解析並上傳至雲端';
+        }
+
+        // 抓取日記
         async function fetchDiaries() {
+            const displayArea = document.getElementById('diary-display');
+            const loading = document.getElementById('loading');
+            
             loading.style.display = 'block';
             displayArea.innerHTML = '';
+            searchBox.value = ''; // 清空搜尋
+            diaryStats.style.display = 'none';
             
             try {
-                // 只抓取「這個登入者」的日記，並且由新到舊排序
                 const q = query(
                     collection(db, "diaries"), 
                     where("userId", "==", currentUser.uid),
@@ -202,18 +328,24 @@
                 loading.style.display = 'none';
 
                 if (querySnapshot.empty) {
-                    displayArea.innerHTML = "<p style='text-align:center; color:#777;'>雲端目前還沒有日記，趕快從上面匯入吧！</p>";
+                    displayArea.innerHTML = `
+                        <div style="text-align:center; padding: 50px; color: var(--text-light);">
+                            <i class="fa-solid fa-box-open" style="font-size: 3em; margin-bottom: 15px; color:#cbd5e1;"></i>
+                            <p>雲端目前空空如也，點擊上方的「系統設定」開始匯入您的日記吧！</p>
+                        </div>`;
                     return;
                 }
 
+                let totalCount = 0;
                 querySnapshot.forEach((doc) => {
+                    totalCount++;
                     const diary = doc.data();
                     const card = document.createElement('div');
                     card.className = 'diary-card';
                     
                     const dateDiv = document.createElement('div');
                     dateDiv.className = 'diary-date';
-                    dateDiv.innerText = diary.title;
+                    dateDiv.innerHTML = `<i class="fa-regular fa-calendar"></i> ${diary.title}`;
                     
                     const contentDiv = document.createElement('div');
                     contentDiv.className = 'diary-content';
@@ -223,9 +355,14 @@
                     card.appendChild(contentDiv);
                     displayArea.appendChild(card);
                 });
+
+                // 顯示統計
+                diaryStats.innerText = `目前共收錄 ${totalCount} 篇記憶`;
+                diaryStats.style.display = 'inline-block';
+
             } catch (error) {
                 console.error("抓取失敗", error);
-                loading.innerText = "讀取資料庫時發生錯誤，請確認 Firebase 設定。";
+                loading.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 讀取發生錯誤，請重新整理網頁。';
             }
         }
     </script>
