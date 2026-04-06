@@ -118,6 +118,7 @@
         .btn-outline:hover { background-color: var(--bg-color); }
         
         #theme-toggle { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); margin-bottom: 10px;}
+        .btn-icon { background: transparent; color: var(--text-main); width: auto; font-size: 1.2em; padding: 5px; }
 
         /* 主內容區 */
         main { padding: 30px; max-width: 900px; margin: 0 auto; width: 100%; }
@@ -152,6 +153,25 @@
         }
         .delete-btn:hover { color: var(--danger-color); background: transparent;}
 
+        /* =============== 新增：日曆專屬樣式 =============== */
+        .calendar-card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: var(--shadow); margin-bottom: 25px; border: 1px solid var(--border-color); }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; }
+        .day-label { font-weight: bold; color: var(--text-light); padding: 10px 0; }
+        .calendar-day { 
+            aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; border-radius: 12px; transition: 0.2s; position: relative; font-weight: 500;
+        }
+        .calendar-day:hover { background: var(--bg-color); }
+        .calendar-day.today { border: 2px solid var(--primary-color); }
+        .calendar-day.has-event::after {
+            content: ''; position: absolute; bottom: 6px; width: 6px; height: 6px; 
+            background: var(--primary-color); border-radius: 50%;
+        }
+        .calendar-day.selected { background: var(--primary-color) !important; color: white; }
+        .calendar-day.other-month { opacity: 0.3; cursor: default; }
+        /* ================================================== */
+
         /* 匯入區塊 */
         textarea {
             width: 100%; height: 300px; padding: 15px; border: 1px solid var(--border-color);
@@ -167,15 +187,14 @@
         }
 
         /* ---------------------------------------------------
-           📱 手機版響應式設計 (Mobile Responsive) 
-           --------------------------------------------------- */
+            📱 手機版響應式設計 (Mobile Responsive) 
+            --------------------------------------------------- */
         @media (max-width: 768px) {
             .app-container {
-                display: block; /* 關閉 Grid，改為上下排列 */
-                padding-bottom: 70px; /* 留空間給底部導覽列 */
+                display: block; 
+                padding-bottom: 70px; 
             }
 
-            /* 把側邊欄變成頂部/底部導覽列 */
             nav {
                 height: auto; border-right: none; position: fixed; bottom: 0; top: auto;
                 width: 100%; padding: 0; border-top: 1px solid var(--border-color);
@@ -183,11 +202,10 @@
                 flex-direction: row; justify-content: space-around;
             }
 
-            /* 手機版隱藏 Logo 和部分登入區，只留按鈕 */
             .logo-area { display: none; }
             .user-area { padding: 10px; border-top: none; flex-direction: row; align-items: center; justify-content: center;}
             #user-info { display: none; }
-            #theme-toggle { display: none; } /* 手機版為了簡潔可先隱藏切換，或放別處 */
+            #theme-toggle { display: none; } 
             
             #logout-btn { padding: 5px 10px; font-size: 12px; }
 
@@ -202,7 +220,6 @@
 
             main { padding: 20px 15px; }
             
-            /* 手機版加入頂部 Logo 條 */
             .mobile-header {
                 display: flex; justify-content: space-between; align-items: center;
                 padding: 15px 20px; background: var(--nav-bg); border-bottom: 1px solid var(--border-color);
@@ -211,7 +228,6 @@
             .mobile-logo { font-size: 1.2em; font-weight: bold; color: var(--primary-color); }
         }
 
-        /* 電腦版隱藏手機頂部條 */
         @media (min-width: 769px) { .mobile-header { display: none; } }
     </style>
 </head>
@@ -227,8 +243,11 @@
             <div class="logo-area"><i class="fa-solid fa-book-open"></i> 時光日記</div>
             
             <div class="nav-menu" id="main-nav">
-                <div class="nav-item active" onclick="switchView('diary-view', this)">
-                    <i class="fa-solid fa-house"></i> <span>我的日記</span>
+                <div class="nav-item active" onclick="switchView('calendar-view', this)">
+                    <i class="fa-solid fa-calendar-days"></i> <span>日曆回顧</span>
+                </div>
+                <div class="nav-item" onclick="switchView('diary-view', this)">
+                    <i class="fa-solid fa-list"></i> <span>所有日記</span>
                 </div>
                 <div class="nav-item" onclick="switchView('import-view', this)">
                     <i class="fa-solid fa-cloud-arrow-up"></i> <span>匯入系統</span>
@@ -248,6 +267,18 @@
                 <i class="fa-solid fa-shield-halved" style="font-size: 4em; color: var(--primary-color); margin-bottom: 20px;"></i>
                 <h2>專屬私密空間</h2>
                 <p style="color: var(--text-light); margin-top: 10px;">請從左側或下方導覽列登入，以存取您的雲端日記。</p>
+            </div>
+
+            <div id="calendar-view" class="view-section">
+                <div class="calendar-card">
+                    <div class="calendar-header">
+                        <button class="btn-icon" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <h2 id="current-month-year"></h2>
+                        <button class="btn-icon" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                </div>
+                <div id="day-detail"></div>
             </div>
 
             <div id="diary-view" class="view-section">
@@ -274,9 +305,6 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, query, orderBy, where, writeBatch, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-        // ========================================================
-        // ⚠️ 請在這裡貼上你的 Firebase Config (剛剛那一包)
-        // ========================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBJkRaCrafDTxj8dvjm0l82c06lkvuFZPs",
             authDomain: "jiachang-diary.firebaseapp.com",
@@ -292,6 +320,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         let currentUser = null;
+        
+        // 新增：存放所有日記的變數，給日曆使用
+        let allDiaries = [];
+        let viewDate = new Date();
+        let currentSelectedDate = null;
 
         // UI 綁定
         const loginBtn = document.getElementById('login-btn');
@@ -318,7 +351,6 @@
             mobileThemeToggle.innerHTML = mIconHTML;
         }
 
-        // 載入時檢查深色模式設定
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         updateThemeIcons(savedTheme);
@@ -336,7 +368,8 @@
                 mainNav.style.display = 'flex'; 
                 userInfo.innerText = user.displayName;
                 
-                switchView('diary-view', document.querySelector('.nav-item'));
+                // 登入後預設跳轉到「日曆視圖」
+                switchView('calendar-view', document.querySelector('.nav-item'));
                 fetchDiaries();
             } else {
                 currentUser = null;
@@ -359,13 +392,16 @@
             if(clickedElement) clickedElement.classList.add('active');
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
-            window.scrollTo(0, 0); // 切換畫面時回到最上面
+            window.scrollTo(0, 0);
+            
+            // 如果切換到日曆，重新渲染一次確保排版正確
+            if(viewId === 'calendar-view') renderCalendar();
         };
 
         // 搜尋功能
         document.getElementById('search-box').addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase();
-            document.querySelectorAll('.diary-card').forEach(card => {
+            document.querySelectorAll('#diary-display .diary-card').forEach(card => {
                 const text = card.innerText.toLowerCase();
                 card.style.display = text.includes(keyword) ? 'block' : 'none';
             });
@@ -417,12 +453,11 @@
             }
         });
 
-        // 刪除單篇日記功能 (全域函數)
+        // 刪除單篇日記功能
         window.deleteDiary = async function(docId) {
             if(confirm("確定要刪除這篇日記嗎？刪除後無法復原喔！")) {
                 try {
                     await deleteDoc(doc(db, "diaries", docId));
-                    // 刪除成功後，重新抓取一次資料更新畫面
                     fetchDiaries(); 
                 } catch (error) {
                     console.error("刪除失敗", error);
@@ -431,13 +466,14 @@
             }
         };
 
-        // 抓取日記
+        // 抓取日記 (修改為同時更新列表與日曆)
         async function fetchDiaries() {
             const displayArea = document.getElementById('diary-display');
             const loading = document.getElementById('loading');
             
             loading.style.display = 'block';
             displayArea.innerHTML = '';
+            allDiaries = []; // 清空重抓
             
             try {
                 const q = query(collection(db, "diaries"), where("userId", "==", currentUser.uid), orderBy("sortDate", "desc"));
@@ -446,15 +482,16 @@
 
                 if (querySnapshot.empty) {
                     displayArea.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-light);">還沒有日記喔，去匯入系統新增吧！</div>`;
+                    renderCalendar(); // 空白日曆
                     return;
                 }
 
                 querySnapshot.forEach((doc) => {
-                    const diary = doc.data();
+                    const diary = { id: doc.id, ...doc.data() };
+                    allDiaries.push(diary); // 存入陣列給日曆用
+
                     const card = document.createElement('div');
                     card.className = 'diary-card';
-                    
-                    // 新增了包含刪除按鈕的 Header
                     card.innerHTML = `
                         <div class="diary-header">
                             <div class="diary-date"><i class="fa-regular fa-calendar-check"></i> ${diary.title}</div>
@@ -466,11 +503,103 @@
                     `;
                     displayArea.appendChild(card);
                 });
+
+                // 資料更新後，同步更新日曆
+                renderCalendar();
+                
+                // 如果目前日曆有選中特定日期，重新整理該日期的詳細內容
+                if (currentSelectedDate) {
+                    showDayDetail(currentSelectedDate);
+                } else {
+                    document.getElementById('day-detail').innerHTML = ''; 
+                }
+
             } catch (error) {
                 console.error("抓取失敗", error);
                 loading.innerHTML = '讀取發生錯誤。';
             }
         }
+
+        /* ==================== 新增：日曆核心邏輯 ==================== */
+        window.renderCalendar = function() {
+            const grid = document.getElementById('calendar-grid');
+            const title = document.getElementById('current-month-year');
+            if(!grid) return;
+            
+            grid.innerHTML = '';
+            
+            const year = viewDate.getFullYear();
+            const month = viewDate.getMonth();
+            title.innerText = `${year}年 ${month + 1}月`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            // 星期標籤
+            ['日','一','二','三','四','五','六'].forEach(d => {
+                const el = document.createElement('div'); el.className = 'day-label'; el.innerText = d; grid.appendChild(el);
+            });
+
+            // 上個月日期補位
+            for(let i = firstDay; i > 0; i--) {
+                const el = document.createElement('div'); el.className = 'calendar-day other-month';
+                el.innerText = daysInPrevMonth - i + 1; grid.appendChild(el);
+            }
+
+            // 統計有寫日記的日期
+            const markedDates = new Set(allDiaries.map(d => d.sortDate));
+            
+            // 本月日期
+            for(let i = 1; i <= daysInMonth; i++) {
+                const el = document.createElement('div');
+                el.className = 'calendar-day';
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                
+                if(markedDates.has(dateStr)) el.classList.add('has-event');
+                if(new Date().toDateString() === new Date(year, month, i).toDateString()) el.classList.add('today');
+                if(currentSelectedDate === dateStr) el.classList.add('selected');
+                
+                el.innerText = i;
+                el.onclick = () => {
+                    currentSelectedDate = dateStr;
+                    renderCalendar(); // 重新渲染以更新選中(selected)顏色
+                    showDayDetail(dateStr);
+                };
+                grid.appendChild(el);
+            }
+        };
+
+        window.changeMonth = function(step) {
+            viewDate.setMonth(viewDate.getMonth() + step);
+            renderCalendar();
+        };
+
+        // 點擊日曆後，顯示當天詳細內容
+        window.showDayDetail = function(dateStr) {
+            const diaries = allDiaries.filter(d => d.sortDate === dateStr);
+            const detailArea = document.getElementById('day-detail');
+            
+            if (diaries.length > 0) {
+                detailArea.innerHTML = diaries.map(diary => `
+                    <div class="diary-card" style="margin-top:20px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15); border-color: var(--primary-color);">
+                        <div class="diary-header">
+                            <div class="diary-date"><i class="fa-regular fa-calendar-check"></i> ${diary.title}</div>
+                            <button class="delete-btn" onclick="deleteDiary('${diary.id}')" title="刪除這篇日記">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                        <div class="diary-content">${diary.text}</div>
+                    </div>
+                `).join('');
+                
+                // 平滑滾動到詳細內容區
+                setTimeout(() => detailArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+            } else {
+                detailArea.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-light); margin-top:20px;">這天還沒有紀錄喔，如果想補寫可以透過匯入系統上傳！</div>';
+            }
+        };
+        /* ========================================================== */
 
         // 監聽滾動，控制回到頂部按鈕的顯示
         window.onscroll = function() {
