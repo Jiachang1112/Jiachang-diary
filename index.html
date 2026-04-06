@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的專屬日記平台 (雲端同步版)</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --bg-color: #F4F7F6;
+            --card-bg: #FFFFFF;
+            --text-main: #333333;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; line-height: 1.6; }
+        header { background-color: var(--primary-color); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { margin: 0; font-size: 1.5em; }
+        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        .auth-section { text-align: center; margin-top: 50px; }
+        
+        /* 隱藏未登入時不該看到的區塊 */
+        #app-content { display: none; } 
+        
+        button { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #357ABD; }
+        .logout-btn { background-color: #555; padding: 5px 10px; font-size: 14px; }
+        
+        .import-section { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        
+        .diary-card { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-color); margin-bottom: 20px; }
+        .diary-date { font-size: 1.2em; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
+        .diary-content { white-space: pre-wrap; }
+        
+        #loading { text-align: center; color: #777; display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>📖 時光日記 (雲端版)</h1>
+        <div>
+            <span id="user-info" style="margin-right: 15px; font-size: 0.9em;"></span>
+            <button id="login-btn">Google 登入</button>
+            <button id="logout-btn" class="logout-btn" style="display:none;">登出</button>
+        </div>
+    </header>
+
+    <div id="auth-warning" class="auth-section">
+        <h2>請先登入以查看或匯入日記</h2>
+        <p>你的日記已受到雲端加密保護，跨裝置同步中。</p>
+    </div>
+
+    <div class="container" id="app-content">
+        <div class="import-section">
+            <h3>大量匯入日記</h3>
+            <textarea id="diary-input" placeholder="請將 Word 裡的日記全部複製貼到這裡..."></textarea><br>
+            <button id="import-btn" style="margin-top: 10px;">切分並上傳至雲端</button>
+        </div>
+
+        <h3 style="border-bottom: 2px solid var(--primary-color); padding-bottom: 5px;">我的日記列表</h3>
+        <div id="loading">讀取雲端資料中...</div>
+        <div id="diary-display"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, orderBy, where, writeBatch, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        // ==========================================
+        // 你的專屬 Firebase 設定 (已成功帶入)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJkRaCrafDTxj8dvjm0l82c06lkvuFZPs",
+            authDomain: "jiachang-diary.firebaseapp.com",
+            databaseURL: "https://jiachang-diary-default-rtdb.firebaseio.com",
+            projectId: "jiachang-diary",
+            storageBucket: "jiachang-diary.firebasestorage.app",
+            messagingSenderId: "486873499559",
+            appId: "1:486873499559:web:ac2d57b121dca8ad0a1882",
+            measurementId: "G-1FRQMJGYS7"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+
+        // UI 元素綁定
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const importBtn = document.getElementById('import-btn');
+        const appContent = document.getElementById('app-content');
+        const authWarning = document.getElementById('auth-warning');
+        const userInfo = document.getElementById('user-info');
+        const displayArea = document.getElementById('diary-display');
+        const loading = document.getElementById('loading');
+
+        // 登入狀態監聽
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'inline-block';
+                authWarning.style.display = 'none';
+                appContent.style.display = 'block';
+                userInfo.innerText = `嗨！${user.displayName}`;
+                fetchDiaries(); // 登入成功，去雲端抓日記
+            } else {
+                currentUser = null;
+                loginBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+                authWarning.style.display = 'block';
+                appContent.style.display = 'none';
+                userInfo.innerText = '';
+                displayArea.innerHTML = '';
+            }
+        });
+
+        // 登入按鈕事件
+        loginBtn.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch((error) => alert("登入失敗：" + error.message));
+        });
+
+        // 登出按鈕事件
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // 匯入按鈕事件
+        importBtn.addEventListener('click', async () => {
+            const input = document.getElementById('diary-input').value;
+            if (!input.trim()) return alert("請先貼上日記內容！");
+            
+            importBtn.disabled = true;
+            importBtn.innerText = "上傳中請稍候...";
+
+            const regex = /(\d{4}年\d{2}月\d{2}日\([一二三四五六日]\))/g;
+            const parts = input.split(regex);
+            
+            // 使用 Batch 批次上傳，加快速度
+            const batch = writeBatch(db);
+            let count = 0;
+
+            for (let i = 1; i < parts.length; i += 2) {
+                const dateTitle = parts[i];
+                const content = parts[i+1] ? parts[i+1].trim() : "";
+                
+                if (dateTitle) {
+                    // 把中文日期轉成 YYYY-MM-DD 方便未來排序
+                    const sortDate = dateTitle.substring(0,4) + '-' + dateTitle.substring(5,7) + '-' + dateTitle.substring(8,10);
+                    
+                    const newDiaryRef = doc(collection(db, "diaries"));
+                    batch.set(newDiaryRef, {
+                        userId: currentUser.uid, // 綁定這是「誰」的日記
+                        title: dateTitle,
+                        text: content,
+                        sortDate: sortDate,
+                        timestamp: new Date()
+                    });
+                    count++;
+                }
+            }
+
+            if (count === 0) {
+                alert("找不到符合格式的日期開頭！");
+                importBtn.disabled = false;
+                importBtn.innerText = "切分並上傳至雲端";
+                return;
+            }
+
+            try {
+                await batch.commit(); // 一口氣把所有日記寫入雲端
+                alert(`太棒了！成功解析並上傳 ${count} 篇日記至雲端！`);
+                document.getElementById('diary-input').value = "";
+                fetchDiaries(); // 重新抓取
+            } catch (error) {
+                console.error("上傳失敗", error);
+                alert("上傳失敗，請確認 Firebase 資料庫(Firestore)的權限規則是否已設為測試模式。");
+            } finally {
+                importBtn.disabled = false;
+                importBtn.innerText = "切分並上傳至雲端";
+            }
+        });
+
+        // 從雲端抓取日記並顯示
+        async function fetchDiaries() {
+            loading.style.display = 'block';
+            displayArea.innerHTML = '';
+            
+            try {
+                // 只抓取「這個登入者」的日記，並且由新到舊排序
+                const q = query(
+                    collection(db, "diaries"), 
+                    where("userId", "==", currentUser.uid),
+                    orderBy("sortDate", "desc")
+                );
+                
+                const querySnapshot = await getDocs(q);
+                loading.style.display = 'none';
+
+                if (querySnapshot.empty) {
+                    displayArea.innerHTML = "<p style='text-align:center; color:#777;'>雲端目前還沒有日記，趕快從上面匯入吧！</p>";
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const diary = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'diary-card';
+                    
+                    const dateDiv = document.createElement('div');
+                    dateDiv.className = 'diary-date';
+                    dateDiv.innerText = diary.title;
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'diary-content';
+                    contentDiv.innerText = diary.text;
+                    
+                    card.appendChild(dateDiv);
+                    card.appendChild(contentDiv);
+                    displayArea.appendChild(card);
+                });
+            } catch (error) {
+                console.error("抓取失敗", error);
+                loading.innerText = "讀取資料庫時發生錯誤，請確認 Firebase 設定。";
+            }
+        }
+    </script>
+</body>
+</html>
