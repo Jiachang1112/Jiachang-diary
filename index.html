@@ -74,7 +74,7 @@
         }
 
         .nav-menu {
-            display: none; /* 未登入前隱藏 */
+            display: none;
             flex-direction: column;
             gap: 10px;
             padding: 0 15px;
@@ -105,11 +105,8 @@
         }
 
         #user-info { font-size: 0.9em; font-weight: bold; text-align: center; }
-
-        /* 新增：統計儀表板樣式 */
         .stats-box { background: rgba(59, 130, 246, 0.1); color: var(--primary-color); padding: 10px; border-radius: 8px; text-align: center; font-size: 0.9em; font-weight: bold; display: none; }
 
-        /* 按鈕樣式 */
         button {
             background-color: var(--primary-color); color: white; border: none;
             padding: 10px 15px; border-radius: 8px; cursor: pointer; transition: 0.2s;
@@ -124,22 +121,18 @@
         .btn-icon { background: transparent; color: var(--text-light); width: auto; font-size: 1.2em; padding: 5px; }
         .btn-icon:hover { color: var(--primary-color); background: transparent; }
 
-        /* 主內容區 */
         main { padding: 30px; max-width: 900px; margin: 0 auto; width: 100%; }
 
-        /* 畫面切換 */
         .view-section { display: none; animation: fadeIn 0.3s; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 新增：全域載入提示 */
         #global-loading {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             background: var(--primary-color); color: white; padding: 10px 20px; border-radius: 30px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000; font-weight: bold; display: none; align-items: center; gap: 10px;
         }
 
-        /* 搜尋列 */
         .search-box {
             width: 100%; padding: 14px 20px; font-size: 16px; border: 1px solid var(--border-color);
             border-radius: 50px; margin-bottom: 30px; outline: none; background: var(--card-bg); color: var(--text-main);
@@ -147,7 +140,6 @@
         }
         .search-box:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
 
-        /* 日記卡片 */
         .diary-card {
             background: var(--card-bg); padding: 25px; border-radius: 16px;
             box-shadow: var(--shadow); margin-bottom: 25px; border: 1px solid var(--border-color);
@@ -162,7 +154,6 @@
         .delete-btn { background: transparent; color: var(--text-light); border: none; width: auto; padding: 5px; }
         .delete-btn:hover { color: var(--danger-color); background: transparent;}
 
-        /* 表單元素 (寫日記/編輯用) */
         input[type="date"], textarea.form-control { 
             width: 100%; padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); 
             background: var(--bg-color); color: var(--text-main); font-family: inherit; font-size: 16px; margin-bottom: 15px; 
@@ -188,25 +179,56 @@
         }
         .calendar-day.selected { background: var(--primary-color) !important; color: white; }
         .calendar-day.other-month { opacity: 0.3; cursor: default; }
-        /* ================================================== */
 
-        /* 匯入區塊 */
         textarea.import-area {
             width: 100%; height: 300px; padding: 15px; border: 1px solid var(--border-color);
             border-radius: 12px; font-size: 15px; margin: 15px 0; background: var(--card-bg); color: var(--text-main);
             line-height: 1.6; resize: vertical;
         }
 
-        /* 回到頂部按鈕 */
         #back-to-top {
             position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
             border-radius: 50%; background: var(--primary-color); color: white; display: none;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000;
         }
 
-        /* ---------------------------------------------------
-            📱 手機版響應式設計 (Mobile Responsive) 
-            --------------------------------------------------- */
+        /* ================== 新增：專屬系統彈窗樣式 ================== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5); z-index: 2000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: 0.3s;
+            backdrop-filter: blur(3px); /* 讓背景有微糊的質感 */
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-box {
+            background: var(--card-bg); width: 90%; max-width: 350px;
+            border-radius: 20px; padding: 30px 25px; text-align: center;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
+            transform: scale(0.9); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-overlay.show .modal-box { transform: scale(1); }
+        
+        .modal-icon-circle {
+            width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 15px;
+            display: flex; align-items: center; justify-content: center; font-size: 2em;
+        }
+        .modal-icon-danger { background: #fee2e2; color: #ef4444; }
+        .modal-icon-primary { background: #dbeafe; color: #3b82f6; }
+        
+        .modal-title { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; color: var(--text-main); }
+        .modal-message { color: var(--text-light); margin-bottom: 25px; white-space: pre-wrap; line-height: 1.6; font-size: 0.95em;}
+        .modal-actions { display: flex; gap: 15px; justify-content: center; }
+        
+        .modal-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; border: none; width: 100%;}
+        .modal-btn-cancel { background: var(--bg-color); color: var(--text-main); }
+        .modal-btn-cancel:hover { background: #e5e7eb; }
+        .modal-btn-danger { background: var(--danger-color); color: white; }
+        .modal-btn-danger:hover { background: #dc2626; }
+        .modal-btn-primary { background: var(--primary-color); color: white; }
+        .modal-btn-primary:hover { background: var(--primary-hover); }
+        /* ======================================================== */
+
         @media (max-width: 768px) {
             .app-container { display: block; padding-bottom: 70px; }
             nav {
@@ -240,6 +262,17 @@
 
     <div id="global-loading"><i class="fa-solid fa-spinner fa-spin"></i> 同步中...</div>
 
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div id="modal-icon" class="modal-icon-circle"></div>
+            <div id="modal-title" class="modal-title"></div>
+            <div id="modal-message" class="modal-message"></div>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="modal-btn modal-btn-cancel">取消</button>
+                <button id="modal-confirm-btn" class="modal-btn">確定</button>
+            </div>
+        </div>
+    </div>
     <div class="mobile-header">
         <div class="mobile-logo"><i class="fa-solid fa-book-open"></i> 時光日記</div>
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -373,6 +406,49 @@
         const userInfo = document.getElementById('user-info');
         const mainNav = document.getElementById('main-nav');
         
+        /* ================== 新增：專屬系統彈窗 控制邏輯 ================== */
+        window.showCustomModal = function({ title, message, type = 'primary', isAlert = false }) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-modal');
+                const icon = document.getElementById('modal-icon');
+                const titleEl = document.getElementById('modal-title');
+                const msgEl = document.getElementById('modal-message');
+                const cancelBtn = document.getElementById('modal-cancel-btn');
+                const confirmBtn = document.getElementById('modal-confirm-btn');
+
+                // 寫入文字
+                titleEl.innerText = title;
+                msgEl.innerText = message;
+
+                // 依照類型切換顏色與圖示
+                if (type === 'danger') {
+                    icon.className = 'modal-icon-circle modal-icon-danger';
+                    icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                    confirmBtn.className = 'modal-btn modal-btn-danger';
+                } else {
+                    icon.className = 'modal-icon-circle modal-icon-primary';
+                    icon.innerHTML = '<i class="fa-solid fa-info"></i>';
+                    confirmBtn.className = 'modal-btn modal-btn-primary';
+                }
+
+                // 如果只是單純提示，隱藏取消按鈕
+                cancelBtn.style.display = isAlert ? 'none' : 'block';
+
+                // 顯示彈窗
+                modal.classList.add('show');
+
+                // 關閉並回傳結果
+                const closeModal = (result) => {
+                    modal.classList.remove('show');
+                    setTimeout(() => resolve(result), 300); // 等待動畫結束
+                };
+
+                cancelBtn.onclick = () => closeModal(false);
+                confirmBtn.onclick = () => closeModal(true);
+            });
+        };
+        /* ============================================================== */
+
         // 深色模式邏輯
         const themeToggle = document.getElementById('theme-toggle');
         const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
@@ -399,10 +475,8 @@
         themeToggle.addEventListener('click', toggleTheme);
         mobileThemeToggle.addEventListener('click', toggleTheme);
 
-        // 工具函數：顯示載入中
         const showLoading = (show) => { document.getElementById('global-loading').style.display = show ? 'flex' : 'none'; };
 
-        // 工具函數：更新統計數量
         const updateStats = () => {
             const count = allDiaries.length;
             document.getElementById('desktop-stats').innerHTML = `<i class="fa-solid fa-box-archive"></i> 共收錄 ${count} 篇`;
@@ -410,13 +484,11 @@
             document.getElementById('mobile-stats').innerText = `${count} 篇記憶`;
         };
 
-        // 工具函數：取得星期幾字串
         const getWeekdayString = (dateString) => {
             const days = ['日', '一', '二', '三', '四', '五', '六'];
             return days[new Date(dateString).getDay()];
         };
 
-        // 登入狀態監聽
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -444,9 +516,19 @@
         });
 
         loginBtn.addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
-        logoutBtn.addEventListener('click', () => signOut(auth));
+        
+        // 🌟 更新登出按鈕：加入漂亮的防呆確認框
+        logoutBtn.addEventListener('click', async () => {
+            const confirmed = await showCustomModal({
+                title: '確認操作',
+                message: '您確定要登出目前的帳號嗎？',
+                type: 'danger'
+            });
+            if (confirmed) {
+                signOut(auth);
+            }
+        });
 
-        // 畫面切換
         window.switchView = function(viewId, clickedElement) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if(clickedElement) clickedElement.classList.add('active');
@@ -457,7 +539,6 @@
             if(viewId === 'calendar-view') renderCalendar();
         };
 
-        // 搜尋功能
         document.getElementById('search-box').addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase();
             document.querySelectorAll('#diary-display .diary-card').forEach(card => {
@@ -466,13 +547,12 @@
             });
         });
 
-        /* ==================== 手動新增與編輯區塊 ==================== */
-
         document.getElementById('save-new-btn').onclick = async () => {
             const dateVal = document.getElementById('new-diary-date').value; 
             const text = document.getElementById('new-diary-content').value.trim();
             
-            if(!dateVal || !text) return alert('日期跟內容都要填寫喔！');
+            // 🌟 換成漂亮提示框
+            if(!dateVal || !text) return showCustomModal({ title: '提示', message: '日期跟內容都要填寫喔！', isAlert: true });
             
             showLoading(true);
             const title = `${dateVal.substring(0,4)}年${dateVal.substring(5,7)}月${dateVal.substring(8,10)}日(${getWeekdayString(dateVal)})`;
@@ -485,7 +565,7 @@
                 await fetchDiaries(); 
                 switchView('diary-view', document.querySelectorAll('.nav-item')[1]); 
             } catch (e) {
-                console.error(e); alert("儲存失敗");
+                console.error(e); showCustomModal({ title: '錯誤', message: '儲存失敗', type: 'danger', isAlert: true });
             }
             showLoading(false);
         };
@@ -506,7 +586,8 @@
             const newDate = document.getElementById('edit-diary-date').value;
             const newText = document.getElementById('edit-diary-content').value.trim();
             
-            if(!newDate || !newText) return alert('日期跟內容不能為空喔！');
+            // 🌟 換成漂亮提示框
+            if(!newDate || !newText) return showCustomModal({ title: '提示', message: '日期跟內容不能為空喔！', isAlert: true });
             
             showLoading(true);
             const newTitle = `${newDate.substring(0,4)}年${newDate.substring(5,7)}月${newDate.substring(8,10)}日(${getWeekdayString(newDate)})`;
@@ -518,26 +599,22 @@
                 await fetchDiaries();
                 switchView('diary-view', document.querySelectorAll('.nav-item')[1]); 
             } catch(e) {
-                console.error(e); alert("更新失敗");
+                console.error(e); showCustomModal({ title: '錯誤', message: '更新失敗', type: 'danger', isAlert: true });
             }
             showLoading(false);
         };
 
-        /* ======================================================= */
-
-        // 匯入邏輯 (加入確認彈窗與天數計算)
         const importBtn = document.getElementById('import-btn');
         importBtn.addEventListener('click', async () => {
             const input = document.getElementById('diary-input').value;
-            if (!input.trim()) return alert("請先貼上內容喔！");
+            // 🌟 換成漂亮提示框
+            if (!input.trim()) return showCustomModal({ title: '提示', message: '請先貼上內容喔！', isAlert: true });
 
-            // 第一階段：先解析內容，但不馬上上傳
             const regex = /(\d{4}年\d{2}月\d{2}日\([一二三四五六日]\))/g;
             const parts = input.split(regex);
             
-            // 用陣列跟 Set 來暫存準備要匯入的資料，並計算天數
             const diariesToImport = [];
-            const uniqueDates = new Set(); // Set 可以自動過濾重複的日期
+            const uniqueDates = new Set(); 
             let count = 0;
 
             for (let i = 1; i < parts.length; i += 2) {
@@ -545,30 +622,27 @@
                 const content = parts[i+1] ? parts[i+1].trim() : "";
                 if (dateTitle) {
                     const sortDate = dateTitle.substring(0,4) + '-' + dateTitle.substring(5,7) + '-' + dateTitle.substring(8,10);
-                    diariesToImport.push({
-                        title: dateTitle,
-                        text: content,
-                        sortDate: sortDate
-                    });
-                    uniqueDates.add(sortDate); // 把日期加進 Set 裡
-                    count++; // 總篇數 +1
+                    diariesToImport.push({ title: dateTitle, text: content, sortDate: sortDate });
+                    uniqueDates.add(sortDate);
+                    count++; 
                 }
             }
 
             if (count === 0) {
-                return alert("找不到符合格式的日期開頭！請確認格式是否正確。");
+                return showCustomModal({ title: '格式錯誤', message: '找不到符合格式的日期開頭！請確認格式是否正確。', type: 'danger', isAlert: true });
             }
 
-            // 第二階段：跳出確認彈出視窗
             const totalDays = uniqueDates.size;
-            const isConfirmed = confirm(`即將加入 ${totalDays} 天，共 ${count} 篇日記。\n\n請問是否確定加入？`);
             
-            // 如果使用者按「取消」，就終止執行
-            if (!isConfirmed) {
-                return; 
-            }
+            // 🌟 更新匯入確認：換成漂亮的 Modal
+            const isConfirmed = await showCustomModal({
+                title: '大量匯入確認',
+                message: `即將加入 ${totalDays} 天，共 ${count} 篇日記。\n\n請問是否確定加入？`,
+                type: 'primary'
+            });
+            
+            if (!isConfirmed) return; 
 
-            // 第三階段：使用者按「確定」，正式上傳到 Firebase
             importBtn.disabled = true;
             showLoading(true);
             const batch = writeBatch(db);
@@ -576,42 +650,43 @@
             diariesToImport.forEach(diary => {
                 const newDiaryRef = doc(collection(db, "diaries"));
                 batch.set(newDiaryRef, {
-                    userId: currentUser.uid, 
-                    title: diary.title, 
-                    text: diary.text, 
-                    sortDate: diary.sortDate, 
-                    timestamp: new Date()
+                    userId: currentUser.uid, title: diary.title, text: diary.text, sortDate: diary.sortDate, timestamp: new Date()
                 });
             });
 
             try {
                 await batch.commit();
-                alert(`成功上傳 ${count} 篇！`);
+                await showCustomModal({ title: '成功', message: `成功上傳 ${count} 篇日記！`, isAlert: true });
                 document.getElementById('diary-input').value = "";
                 document.querySelector('.nav-item').click(); 
                 fetchDiaries();
             } catch (error) {
-                console.error(error); alert("上傳失敗，請檢查網路或權限。");
+                console.error(error); showCustomModal({ title: '上傳失敗', message: '請檢查網路或權限。', type: 'danger', isAlert: true });
             } finally {
                 importBtn.disabled = false; showLoading(false);
             }
         });
 
-        // 刪除單篇日記功能
+        // 🌟 更新刪除功能：加入漂亮的防呆確認框
         window.deleteDiary = async function(docId) {
-            if(confirm("確定要刪除這篇日記嗎？刪除後無法復原喔！")) {
+            const confirmed = await showCustomModal({
+                title: '刪除確認',
+                message: '確定要刪除這篇日記嗎？\n刪除後無法復原喔！',
+                type: 'danger'
+            });
+
+            if(confirmed) {
                 showLoading(true);
                 try {
                     await deleteDoc(doc(db, "diaries", docId));
                     fetchDiaries(); 
                 } catch (error) {
-                    console.error("刪除失敗", error); alert("刪除失敗");
+                    console.error("刪除失敗", error); showCustomModal({ title: '錯誤', message: '刪除失敗', type: 'danger', isAlert: true });
                 }
                 showLoading(false);
             }
         };
 
-        // 抓取日記
         async function fetchDiaries() {
             const displayArea = document.getElementById('diary-display');
             showLoading(true);
