@@ -346,7 +346,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        // 新增引入 setDoc, updateDoc 用於新增與編輯
         import { getFirestore, collection, getDocs, query, orderBy, where, writeBatch, doc, deleteDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -417,7 +416,6 @@
             return days[new Date(dateString).getDay()];
         };
 
-
         // 登入狀態監聽
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -427,7 +425,6 @@
                 mainNav.style.display = 'flex'; 
                 userInfo.innerText = user.displayName;
                 
-                // 預設寫日記的日期為今天
                 document.getElementById('new-diary-date').valueAsDate = new Date();
                 
                 switchView('calendar-view', document.querySelector('.nav-item'));
@@ -469,9 +466,8 @@
             });
         });
 
-        /* ==================== 新增功能區塊 ==================== */
+        /* ==================== 手動新增與編輯區塊 ==================== */
 
-        // 1. 手動新增日記
         document.getElementById('save-new-btn').onclick = async () => {
             const dateVal = document.getElementById('new-diary-date').value; 
             const text = document.getElementById('new-diary-content').value.trim();
@@ -485,16 +481,15 @@
                 await setDoc(doc(collection(db, "diaries")), {
                     userId: currentUser.uid, title: title, text: text, sortDate: dateVal, timestamp: new Date()
                 });
-                document.getElementById('new-diary-content').value = ''; // 成功後清空內容
-                await fetchDiaries(); // 重新抓資料
-                switchView('list-view', document.querySelectorAll('.nav-item')[1]); // 寫完自動跳到列表
+                document.getElementById('new-diary-content').value = ''; 
+                await fetchDiaries(); 
+                switchView('diary-view', document.querySelectorAll('.nav-item')[1]); 
             } catch (e) {
                 console.error(e); alert("儲存失敗");
             }
             showLoading(false);
         };
 
-        // 2. 開啟編輯畫面
         window.editDiary = function(id) {
             const diary = allDiaries.find(d => d.id === id);
             if(!diary) return;
@@ -503,10 +498,9 @@
             document.getElementById('edit-diary-date').value = diary.sortDate;
             document.getElementById('edit-diary-content').value = diary.text;
             
-            switchView('edit-view', null); // 跳轉到隱藏的編輯分頁
+            switchView('edit-view', null); 
         };
 
-        // 3. 儲存編輯修改
         document.getElementById('save-edit-btn').onclick = async () => {
             const id = document.getElementById('edit-diary-id').value;
             const newDate = document.getElementById('edit-diary-date').value;
@@ -522,7 +516,7 @@
                     title: newTitle, text: newText, sortDate: newDate
                 });
                 await fetchDiaries();
-                switchView('diary-view', document.querySelectorAll('.nav-item')[1]); // 存檔後回到列表
+                switchView('diary-view', document.querySelectorAll('.nav-item')[1]); 
             } catch(e) {
                 console.error(e); alert("更新失敗");
             }
@@ -531,18 +525,19 @@
 
         /* ======================================================= */
 
-        // 匯入邏輯
+        // 匯入邏輯 (加入確認彈窗與天數計算)
         const importBtn = document.getElementById('import-btn');
         importBtn.addEventListener('click', async () => {
             const input = document.getElementById('diary-input').value;
-            if (!input.trim()) return alert("請貼上內容喔！");
-            
-            importBtn.disabled = true;
-            showLoading(true);
+            if (!input.trim()) return alert("請先貼上內容喔！");
 
+            // 第一階段：先解析內容，但不馬上上傳
             const regex = /(\d{4}年\d{2}月\d{2}日\([一二三四五六日]\))/g;
             const parts = input.split(regex);
-            const batch = writeBatch(db);
+            
+            // 用陣列跟 Set 來暫存準備要匯入的資料，並計算天數
+            const diariesToImport = [];
+            const uniqueDates = new Set(); // Set 可以自動過濾重複的日期
             let count = 0;
 
             for (let i = 1; i < parts.length; i += 2) {
@@ -550,19 +545,44 @@
                 const content = parts[i+1] ? parts[i+1].trim() : "";
                 if (dateTitle) {
                     const sortDate = dateTitle.substring(0,4) + '-' + dateTitle.substring(5,7) + '-' + dateTitle.substring(8,10);
-                    const newDiaryRef = doc(collection(db, "diaries"));
-                    batch.set(newDiaryRef, {
-                        userId: currentUser.uid, title: dateTitle, text: content, sortDate: sortDate, timestamp: new Date()
+                    diariesToImport.push({
+                        title: dateTitle,
+                        text: content,
+                        sortDate: sortDate
                     });
-                    count++;
+                    uniqueDates.add(sortDate); // 把日期加進 Set 裡
+                    count++; // 總篇數 +1
                 }
             }
 
             if (count === 0) {
-                alert("找不到符合格式的日期開頭！");
-                importBtn.disabled = false; showLoading(false);
-                return;
+                return alert("找不到符合格式的日期開頭！請確認格式是否正確。");
             }
+
+            // 第二階段：跳出確認彈出視窗
+            const totalDays = uniqueDates.size;
+            const isConfirmed = confirm(`即將加入 ${totalDays} 天，共 ${count} 篇日記。\n\n請問是否確定加入？`);
+            
+            // 如果使用者按「取消」，就終止執行
+            if (!isConfirmed) {
+                return; 
+            }
+
+            // 第三階段：使用者按「確定」，正式上傳到 Firebase
+            importBtn.disabled = true;
+            showLoading(true);
+            const batch = writeBatch(db);
+
+            diariesToImport.forEach(diary => {
+                const newDiaryRef = doc(collection(db, "diaries"));
+                batch.set(newDiaryRef, {
+                    userId: currentUser.uid, 
+                    title: diary.title, 
+                    text: diary.text, 
+                    sortDate: diary.sortDate, 
+                    timestamp: new Date()
+                });
+            });
 
             try {
                 await batch.commit();
@@ -571,7 +591,7 @@
                 document.querySelector('.nav-item').click(); 
                 fetchDiaries();
             } catch (error) {
-                console.error(error); alert("上傳失敗");
+                console.error(error); alert("上傳失敗，請檢查網路或權限。");
             } finally {
                 importBtn.disabled = false; showLoading(false);
             }
@@ -591,7 +611,7 @@
             }
         };
 
-        // 抓取日記 (加入統計更新，並加入編輯按鈕)
+        // 抓取日記
         async function fetchDiaries() {
             const displayArea = document.getElementById('diary-display');
             showLoading(true);
@@ -633,7 +653,7 @@
                     displayArea.appendChild(card);
                 });
 
-                updateStats(); // 更新側邊欄與手機版的篇數統計
+                updateStats(); 
                 renderCalendar();
                 
                 if (currentSelectedDate) {
