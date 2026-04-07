@@ -18,6 +18,7 @@
             --danger-color: #ef4444;
             --nav-bg: #ffffff;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --app-bg-image: none; /* 新增背景圖變數 */
         }
 
         [data-theme="dark"] {
@@ -35,6 +36,10 @@
         body { 
             font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; 
             background-color: var(--bg-color); 
+            background-image: var(--app-bg-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: var(--text-main); 
             line-height: 1.6;
             transition: background-color 0.3s, color 0.3s;
@@ -45,6 +50,7 @@
             display: grid;
             grid-template-columns: 240px 1fr;
             min-height: 100vh;
+            background: rgba(var(--bg-color-rgb), 0.85); /* 需要 JS 配合切換 */
         }
 
         /* 導覽列 (側邊欄/底部) */
@@ -117,7 +123,6 @@
         .btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
         .btn-outline:hover { background-color: var(--bg-color); }
         
-        /* 新增：成功按鈕 (匯出用) */
         .btn-success { background-color: #10b981; }
         .btn-success:hover { background-color: #059669; }
         
@@ -154,25 +159,27 @@
         .diary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;}
         .diary-date { font-size: 1.3em; font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;}
         
-        /* 新增：心情徽章樣式 */
         .diary-mood-badge { font-size: 0.8em; background: var(--bg-color); padding: 4px 10px; border-radius: 20px; color: var(--text-main); font-weight: normal; border: 1px solid var(--border-color); margin-left: 5px;}
         
         .diary-content { white-space: pre-wrap; font-size: 1.05em; line-height: 1.8; }
         
+        /* 標籤樣式 */
+        .diary-tags-area { margin-top: 15px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag-badge { background-color: rgba(59, 130, 246, 0.1); color: var(--primary-color); padding: 3px 10px; border-radius: 15px; font-size: 0.85em; font-weight: 500; }
+
         .delete-btn { background: transparent; color: var(--text-light); border: none; width: auto; padding: 5px; }
         .delete-btn:hover { color: var(--danger-color); background: transparent;}
 
-        /* 表單元素更新：加入 select */
-        input[type="date"], select.form-control, textarea.form-control { 
+        input[type="date"], input[type="text"].form-control, select.form-control, textarea.form-control { 
             width: 100%; padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); 
             background: var(--bg-color); color: var(--text-main); font-family: inherit; font-size: 16px; margin-bottom: 15px; 
             outline: none; transition: border 0.3s;
         }
         select.form-control { height: 52px; cursor: pointer; }
         textarea.form-control { height: 200px; resize: vertical; }
-        input[type="date"]:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--primary-color); }
+        input[type="date"]:focus, input[type="text"].form-control:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--primary-color); }
 
-        /* =============== 日曆專屬樣式 =============== */
+        /* =============== 日曆與熱力圖專屬樣式 =============== */
         .calendar-card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: var(--shadow); margin-bottom: 25px; border: 1px solid var(--border-color); }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center; }
@@ -190,6 +197,14 @@
         .calendar-day.selected { background: var(--primary-color) !important; color: white; }
         .calendar-day.other-month { opacity: 0.3; cursor: default; }
 
+        .heatmap-container { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
+        .heatmap-cell { width: 14px; height: 14px; border-radius: 3px; background-color: var(--border-color); flex-shrink: 0;}
+        .heatmap-cell.level-1 { background-color: #93c5fd; }
+        .heatmap-cell.level-2 { background-color: #3b82f6; }
+        .heatmap-cell.level-3 { background-color: #1d4ed8; }
+        .heatmap-cell.level-4 { background-color: #1e3a8a; }
+        /* ================================================== */
+
         textarea.import-area {
             width: 100%; height: 200px; padding: 15px; border: 1px solid var(--border-color);
             border-radius: 12px; font-size: 15px; margin: 15px 0; background: var(--card-bg); color: var(--text-main);
@@ -202,7 +217,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000;
         }
 
-        /* ================== 新增：專屬系統彈窗樣式 ================== */
+        /* ================== 專屬系統彈窗樣式 ================== */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.5); z-index: 2000;
@@ -291,7 +306,7 @@
         </div>
     </div>
 
-    <div class="app-container">
+    <div class="app-container" id="app-container">
         <nav>
             <div class="logo-area"><i class="fa-solid fa-book-open"></i> 時光日記</div>
             
@@ -327,6 +342,11 @@
             </div>
 
             <div id="calendar-view" class="view-section">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="font-size: 1.1em; color: var(--text-light);"><i class="fa-solid fa-chart-simple"></i> 寫作熱力圖 (最近100天)</h3>
+                </div>
+                <div class="heatmap-container" id="heatmap-container"></div>
+
                 <div class="calendar-card">
                     <div class="calendar-header">
                         <button class="btn-icon" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
@@ -339,7 +359,7 @@
             </div>
 
             <div id="diary-view" class="view-section">
-                <input type="text" id="search-box" class="search-box" placeholder="🔍 搜尋日記內容、日期...">
+                <input type="text" id="search-box" class="search-box" placeholder="🔍 搜尋日記內容、標籤 (如 #旅遊) 或日期...">
                 <div id="diary-display"></div>
             </div>
 
@@ -365,6 +385,9 @@
                         </div>
                     </div>
                     
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">標籤 (選填，用半形逗號分隔)</label>
+                    <input type="text" class="form-control" id="new-diary-tags" placeholder="例如：旅遊, 美食, 工作">
+
                     <label style="font-weight: bold; display: block; margin-bottom: 5px;">內容</label>
                     <textarea class="form-control" id="new-diary-content" placeholder="今天發生了什麼有趣的事呢？"></textarea>
                     
@@ -398,6 +421,9 @@
                         </div>
                     </div>
                     
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">標籤 (用半形逗號分隔)</label>
+                    <input type="text" class="form-control" id="edit-diary-tags" placeholder="例如：旅遊, 美食, 工作">
+
                     <label style="font-weight: bold; display: block; margin-bottom: 5px;">內容</label>
                     <textarea class="form-control" id="edit-diary-content"></textarea>
                     
@@ -407,10 +433,20 @@
 
             <div id="import-view" class="view-section">
                 <div class="diary-card" style="margin-top: 0;">
+                    <h3 style="margin-bottom: 10px;"><i class="fa-solid fa-image"></i> 自訂背景圖</h3>
+                    <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 15px;">貼上圖片網址，打造你專屬的日記風格（僅儲存於本機瀏覽器）。</p>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="bg-url-input" class="form-control" placeholder="https://..." style="margin-bottom:0;">
+                        <button onclick="saveBgImage()" style="width:auto; white-space:nowrap;">套用</button>
+                        <button onclick="clearBgImage()" class="btn-outline" style="width:auto; white-space:nowrap;">清除</button>
+                    </div>
+
+                    <hr style="border: none; border-top: 1px dashed var(--border-color); margin: 30px 0;">
+
                     <h3 style="margin-bottom: 10px;"><i class="fa-solid fa-file-word"></i> 大量匯入日記</h3>
                     <p style="color: var(--text-light); font-size: 0.9em;">系統會自動辨識「YYYY年MM月DD日(星期)」格式並為您自動切割存檔。</p>
                     <textarea id="diary-input" class="import-area" placeholder="請將 Word 裡的日記全部複製貼到這裡..."></textarea>
-                    <button id="import-btn" style="padding: 15px; font-size: 16px;"><i class="fa-solid fa-wand-magic-sparkles"></i> 開始解析並上傳至雲端</button>
+                    <button id="import-btn" style="padding: 15px; font-size: 16px;"><i class="fa-solid fa-wand-magic-sparkles"></i> 解析並上傳至雲端</button>
                     
                     <hr style="border: none; border-top: 1px dashed var(--border-color); margin: 30px 0;">
                     
@@ -455,22 +491,47 @@
         const logoutBtn = document.getElementById('logout-btn');
         const userInfo = document.getElementById('user-info');
         const mainNav = document.getElementById('main-nav');
+
+        // ================== 背景圖片邏輯 ==================
+        function loadBgImage() {
+            const savedBg = localStorage.getItem('customBg');
+            const appContainer = document.getElementById('app-container');
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            
+            if(savedBg) {
+                document.documentElement.style.setProperty('--app-bg-image', `url('${savedBg}')`);
+                document.getElementById('bg-url-input').value = savedBg;
+                appContainer.style.background = isDark ? 'rgba(17, 24, 39, 0.85)' : 'rgba(243, 244, 246, 0.85)';
+            } else {
+                document.documentElement.style.setProperty('--app-bg-image', 'none');
+                appContainer.style.background = 'transparent';
+            }
+        }
+        
+        window.saveBgImage = function() {
+            const url = document.getElementById('bg-url-input').value.trim();
+            if(url) {
+                localStorage.setItem('customBg', url);
+                loadBgImage();
+                showCustomModal({ title: '成功', message: '背景已更新！', isAlert: true });
+            }
+        }
+        window.clearBgImage = function() {
+            localStorage.removeItem('customBg');
+            document.getElementById('bg-url-input').value = '';
+            loadBgImage();
+        }
+        // ==================================================
         
         // 🛡️ 文字防護罩
         function escapeHTML(str) {
             if (!str) return '';
-            return str.replace(/[&<>'"]/g, 
-                tag => ({
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    "'": '&#39;',
-                    '"': '&quot;'
-                }[tag] || tag)
+            return String(str).replace(/[&<>'"]/g, 
+                tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag)
             );
         }
         
-        /* ================== 專屬系統彈窗 控制邏輯 ================== */
+        /* 專屬系統彈窗 控制邏輯 */
         window.showCustomModal = function({ title, message, type = 'primary', isAlert = false }) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('custom-modal');
@@ -480,33 +541,25 @@
                 const cancelBtn = document.getElementById('modal-cancel-btn');
                 const confirmBtn = document.getElementById('modal-confirm-btn');
 
-                titleEl.innerText = title;
-                msgEl.innerText = message;
+                titleEl.innerText = title; msgEl.innerText = message;
 
                 if (type === 'danger') {
-                    icon.className = 'modal-icon-circle modal-icon-danger';
-                    icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
-                    confirmBtn.className = 'modal-btn modal-btn-danger';
+                    icon.className = 'modal-icon-circle modal-icon-danger'; icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>'; confirmBtn.className = 'modal-btn modal-btn-danger';
                 } else {
-                    icon.className = 'modal-icon-circle modal-icon-primary';
-                    icon.innerHTML = '<i class="fa-solid fa-info"></i>';
-                    confirmBtn.className = 'modal-btn modal-btn-primary';
+                    icon.className = 'modal-icon-circle modal-icon-primary'; icon.innerHTML = '<i class="fa-solid fa-info"></i>'; confirmBtn.className = 'modal-btn modal-btn-primary';
                 }
 
                 cancelBtn.style.display = isAlert ? 'none' : 'block';
-
                 modal.classList.add('show');
 
                 const closeModal = (result) => {
-                    modal.classList.remove('show');
-                    setTimeout(() => resolve(result), 300); 
+                    modal.classList.remove('show'); setTimeout(() => resolve(result), 300); 
                 };
 
                 cancelBtn.onclick = () => closeModal(false);
                 confirmBtn.onclick = () => closeModal(true);
             });
         };
-        /* ============================================================== */
 
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -514,6 +567,7 @@
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeIcons(newTheme);
+            loadBgImage(); // 重新計算背景遮罩
         }
 
         function updateThemeIcons(theme) {
@@ -526,6 +580,7 @@
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         updateThemeIcons(savedTheme);
+        loadBgImage(); // 初始化背景
 
         document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
         document.getElementById('mobile-theme-toggle').addEventListener('click', toggleTheme);
@@ -547,40 +602,23 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                loginBtn.style.display = 'none';
-                logoutBtn.style.display = 'flex';
-                mainNav.style.display = 'flex'; 
+                loginBtn.style.display = 'none'; logoutBtn.style.display = 'flex'; mainNav.style.display = 'flex'; 
                 userInfo.innerText = user.displayName;
-                
                 document.getElementById('new-diary-date').valueAsDate = new Date();
-                
                 switchView('calendar-view', document.querySelector('.nav-item'));
                 fetchDiaries();
             } else {
                 currentUser = null;
-                loginBtn.style.display = 'flex';
-                logoutBtn.style.display = 'none';
-                mainNav.style.display = 'none'; 
-                userInfo.innerText = '';
-                document.getElementById('desktop-stats').style.display = 'none';
-                document.getElementById('mobile-stats').innerText = '';
-                
+                loginBtn.style.display = 'flex'; logoutBtn.style.display = 'none'; mainNav.style.display = 'none'; 
+                userInfo.innerText = ''; document.getElementById('desktop-stats').style.display = 'none'; document.getElementById('mobile-stats').innerText = '';
                 document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
                 document.getElementById('auth-warning').classList.add('active');
             }
         });
 
         loginBtn.addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
-        
         logoutBtn.addEventListener('click', async () => {
-            const confirmed = await showCustomModal({
-                title: '確認操作',
-                message: '您確定要登出目前的帳號嗎？',
-                type: 'danger'
-            });
-            if (confirmed) {
-                signOut(auth);
-            }
+            if (await showCustomModal({ title: '確認操作', message: '您確定要登出目前的帳號嗎？', type: 'danger' })) signOut(auth);
         });
 
         window.switchView = function(viewId, clickedElement) {
@@ -589,7 +627,6 @@
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             window.scrollTo(0, 0);
-            
             if(viewId === 'calendar-view') renderCalendar();
         };
 
@@ -601,37 +638,30 @@
             });
         });
 
-        // ==================== 寫日記 (支援心情) ====================
+        // 寫新日記
         document.getElementById('save-new-btn').onclick = async () => {
             const dateVal = document.getElementById('new-diary-date').value; 
-            const moodVal = document.getElementById('new-diary-mood').value; // 抓取心情
+            const moodVal = document.getElementById('new-diary-mood').value;
+            const tagsRaw = document.getElementById('new-diary-tags').value;
             const text = document.getElementById('new-diary-content').value.trim();
             
             if(!dateVal || !text) return showCustomModal({ title: '提示', message: '日期跟內容都要填寫喔！', isAlert: true });
             
+            const tagsArray = tagsRaw.split(',').map(t => t.trim()).filter(t => t !== '');
             showLoading(true);
             const title = `${dateVal.substring(0,4)}年${dateVal.substring(5,7)}月${dateVal.substring(8,10)}日(${getWeekdayString(dateVal)})`;
             
             try {
                 await setDoc(doc(collection(db, "diaries")), {
-                    userId: currentUser.uid, 
-                    title: title, 
-                    text: text, 
-                    sortDate: dateVal, 
-                    mood: moodVal, // 存入心情
-                    timestamp: new Date()
+                    userId: currentUser.uid, title: title, text: text, sortDate: dateVal, mood: moodVal, tags: tagsArray, timestamp: new Date()
                 });
-                document.getElementById('new-diary-content').value = ''; 
-                document.getElementById('new-diary-mood').value = '🙂 平靜'; // 恢復預設心情
+                document.getElementById('new-diary-content').value = ''; document.getElementById('new-diary-tags').value = ''; document.getElementById('new-diary-mood').value = '🙂 平靜'; 
                 await fetchDiaries(); 
                 switchView('diary-view', document.querySelectorAll('.nav-item')[1]); 
-            } catch (e) {
-                console.error(e); showCustomModal({ title: '錯誤', message: '儲存失敗', type: 'danger', isAlert: true });
-            }
+            } catch (e) { console.error(e); showCustomModal({ title: '錯誤', message: '儲存失敗', type: 'danger', isAlert: true }); }
             showLoading(false);
         };
 
-        // 開啟編輯畫面 (帶入舊心情)
         window.editDiary = function(id) {
             const diary = allDiaries.find(d => d.id === id);
             if(!diary) return;
@@ -639,75 +669,53 @@
             document.getElementById('edit-diary-id').value = diary.id;
             document.getElementById('edit-diary-date').value = diary.sortDate;
             document.getElementById('edit-diary-content').value = diary.text;
-            // 舊日記如果沒有心情，預設給平靜
             document.getElementById('edit-diary-mood').value = diary.mood || '🙂 平靜'; 
-            
+            document.getElementById('edit-diary-tags').value = diary.tags ? diary.tags.join(', ') : ''; 
             switchView('edit-view', null); 
         };
 
-        // 儲存編輯 (支援心情)
         document.getElementById('save-edit-btn').onclick = async () => {
             const id = document.getElementById('edit-diary-id').value;
             const newDate = document.getElementById('edit-diary-date').value;
-            const newMood = document.getElementById('edit-diary-mood').value; // 抓取新心情
+            const newMood = document.getElementById('edit-diary-mood').value; 
+            const tagsRaw = document.getElementById('edit-diary-tags').value;
             const newText = document.getElementById('edit-diary-content').value.trim();
             
             if(!newDate || !newText) return showCustomModal({ title: '提示', message: '日期跟內容不能為空喔！', isAlert: true });
             
+            const tagsArray = tagsRaw.split(',').map(t => t.trim()).filter(t => t !== '');
             showLoading(true);
             const newTitle = `${newDate.substring(0,4)}年${newDate.substring(5,7)}月${newDate.substring(8,10)}日(${getWeekdayString(newDate)})`;
 
             try {
                 await updateDoc(doc(db, "diaries", id), {
-                    title: newTitle, 
-                    text: newText, 
-                    sortDate: newDate,
-                    mood: newMood // 更新心情
+                    title: newTitle, text: newText, sortDate: newDate, mood: newMood, tags: tagsArray
                 });
                 await fetchDiaries();
                 switchView('diary-view', document.querySelectorAll('.nav-item')[1]); 
-            } catch(e) {
-                console.error(e); showCustomModal({ title: '錯誤', message: '更新失敗', type: 'danger', isAlert: true });
-            }
+            } catch(e) { console.error(e); showCustomModal({ title: '錯誤', message: '更新失敗', type: 'danger', isAlert: true }); }
             showLoading(false);
         };
 
-        // ==================== 匯出功能 ====================
+        // 匯出備份
         document.getElementById('export-btn').addEventListener('click', async () => {
             if(allDiaries.length === 0) return showCustomModal({ title: '提示', message: '目前雲端上還沒有任何日記喔！', isAlert: true });
-            
-            const confirmed = await showCustomModal({
-                title: '匯出備份',
-                message: `確定要匯出所有 ${allDiaries.length} 篇日記作為備份嗎？`,
-                type: 'primary'
-            });
-            
-            if(!confirmed) return;
+            if(!await showCustomModal({ title: '匯出備份', message: `確定要匯出所有 ${allDiaries.length} 篇日記作為備份嗎？`, type: 'primary' })) return;
 
-            // 將日記依照日期「從舊到新」排序，閱讀起來比較順
             const sortedDiaries = [...allDiaries].sort((a, b) => a.sortDate.localeCompare(b.sortDate));
-            
             let textContent = "=== 我的時光日記 完整備份 ===\n\n";
             sortedDiaries.forEach(diary => {
                 const moodDisplay = diary.mood ? ` [${diary.mood}]` : "";
-                textContent += `${diary.title}${moodDisplay}\n`;
-                textContent += `${diary.text}\n\n`;
-                textContent += `----------------------------------------\n\n`;
+                const tagsDisplay = diary.tags && diary.tags.length > 0 ? ` #${diary.tags.join(' #')}` : "";
+                textContent += `${diary.title}${moodDisplay}${tagsDisplay}\n`;
+                textContent += `${diary.text}\n\n----------------------------------------\n\n`;
             });
 
-            // 觸發純文字檔下載
             const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            
-            const todayStr = new Date().toISOString().slice(0, 10);
-            link.download = `時光日記備份_${todayStr}.txt`;
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            const link = document.createElement('a'); link.href = url;
+            link.download = `時光日記備份_${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
         });
 
         // 匯入邏輯
@@ -719,86 +727,54 @@
             const regex = /(\d{4}年\d{2}月\d{2}日\([一二三四五六日]\))/g;
             const parts = input.split(regex);
             
-            const diariesToImport = [];
-            const uniqueDates = new Set(); 
-            let count = 0;
+            const diariesToImport = []; const uniqueDates = new Set(); let count = 0;
 
             for (let i = 1; i < parts.length; i += 2) {
-                const dateTitle = parts[i];
-                const content = parts[i+1] ? parts[i+1].trim() : "";
+                const dateTitle = parts[i]; const content = parts[i+1] ? parts[i+1].trim() : "";
                 if (dateTitle) {
                     const sortDate = dateTitle.substring(0,4) + '-' + dateTitle.substring(5,7) + '-' + dateTitle.substring(8,10);
                     diariesToImport.push({ title: dateTitle, text: content, sortDate: sortDate });
-                    uniqueDates.add(sortDate);
-                    count++; 
+                    uniqueDates.add(sortDate); count++; 
                 }
             }
 
-            if (count === 0) {
-                return showCustomModal({ title: '格式錯誤', message: '找不到符合格式的日期開頭！請確認格式是否正確。', type: 'danger', isAlert: true });
-            }
+            if (count === 0) return showCustomModal({ title: '格式錯誤', message: '找不到符合格式的日期開頭！請確認格式是否正確。', type: 'danger', isAlert: true });
+            if (!await showCustomModal({ title: '大量匯入確認', message: `即將加入 ${uniqueDates.size} 天，共 ${count} 篇日記。\n\n請問是否確定加入？`, type: 'primary' })) return; 
 
-            const totalDays = uniqueDates.size;
-            
-            const isConfirmed = await showCustomModal({
-                title: '大量匯入確認',
-                message: `即將加入 ${totalDays} 天，共 ${count} 篇日記。\n\n請問是否確定加入？`,
-                type: 'primary'
-            });
-            
-            if (!isConfirmed) return; 
-
-            importBtn.disabled = true;
-            showLoading(true);
-            const batch = writeBatch(db);
+            importBtn.disabled = true; showLoading(true); const batch = writeBatch(db);
 
             diariesToImport.forEach(diary => {
                 const newDiaryRef = doc(collection(db, "diaries"));
-                batch.set(newDiaryRef, {
-                    userId: currentUser.uid, 
-                    title: diary.title, 
-                    text: diary.text, 
-                    sortDate: diary.sortDate, 
-                    mood: '🙂 平靜', // 大量匯入預設給平靜心情
-                    timestamp: new Date()
-                });
+                batch.set(newDiaryRef, { userId: currentUser.uid, title: diary.title, text: diary.text, sortDate: diary.sortDate, mood: '🙂 平靜', tags: [], timestamp: new Date() });
             });
 
             try {
                 await batch.commit();
                 await showCustomModal({ title: '成功', message: `成功上傳 ${count} 篇日記！`, isAlert: true });
-                document.getElementById('diary-input').value = "";
-                document.querySelector('.nav-item').click(); 
-                fetchDiaries();
+                document.getElementById('diary-input').value = ""; document.querySelector('.nav-item').click(); fetchDiaries();
             } catch (error) {
                 console.error(error); showCustomModal({ title: '上傳失敗', message: '請檢查網路或權限。', type: 'danger', isAlert: true });
-            } finally {
-                importBtn.disabled = false; showLoading(false);
-            }
+            } finally { importBtn.disabled = false; showLoading(false); }
         });
 
         window.deleteDiary = async function(docId) {
-            const confirmed = await showCustomModal({
-                title: '刪除確認',
-                message: '確定要刪除這篇日記嗎？\n刪除後無法復原喔！',
-                type: 'danger'
-            });
-
-            if(confirmed) {
+            if(await showCustomModal({ title: '刪除確認', message: '確定要刪除這篇日記嗎？\n刪除後無法復原喔！', type: 'danger' })) {
                 showLoading(true);
-                try {
-                    await deleteDoc(doc(db, "diaries", docId));
-                    fetchDiaries(); 
-                } catch (error) {
-                    console.error("刪除失敗", error); showCustomModal({ title: '錯誤', message: '刪除失敗', type: 'danger', isAlert: true });
-                }
+                try { await deleteDoc(doc(db, "diaries", docId)); fetchDiaries(); } 
+                catch (error) { console.error("刪除失敗", error); showCustomModal({ title: '錯誤', message: '刪除失敗', type: 'danger', isAlert: true }); }
                 showLoading(false);
             }
         };
 
-        // 共用卡片生成函數 (支援顯示心情)
+        // 產生卡片 HTML (支援標籤)
         function createCardHTML(diary) {
             const moodBadge = diary.mood ? `<span class="diary-mood-badge">${escapeHTML(diary.mood)}</span>` : '';
+            let tagsHTML = ''; let hiddenSearchText = '';
+            if (diary.tags && diary.tags.length > 0) {
+                tagsHTML = `<div class="diary-tags-area">` + diary.tags.map(t => `<span class="tag-badge">#${escapeHTML(t)}</span>`).join('') + `</div>`;
+                hiddenSearchText = `<span style="display:none;">${diary.tags.map(t => `#${escapeHTML(t)}`).join(' ')}</span>`;
+            }
+
             return `
                 <div class="diary-card" style="margin-top:20px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15); border-color: var(--primary-color);">
                     <div class="diary-header">
@@ -807,24 +783,41 @@
                             ${moodBadge}
                         </div>
                         <div style="display:flex; gap:5px;">
-                            <button class="btn-icon" onclick="editDiary('${diary.id}')" title="編輯這篇日記">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button class="delete-btn" onclick="deleteDiary('${diary.id}')" title="刪除這篇日記">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                            <button class="btn-icon" onclick="editDiary('${diary.id}')" title="編輯這篇日記"><i class="fa-solid fa-pen"></i></button>
+                            <button class="delete-btn" onclick="deleteDiary('${diary.id}')" title="刪除這篇日記"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
                     <div class="diary-content">${escapeHTML(diary.text)}</div>
+                    ${tagsHTML}
+                    ${hiddenSearchText}
                 </div>
             `;
         }
 
+        // 渲染 GitHub 風格熱力圖
+        function renderHeatmap() {
+            const container = document.getElementById('heatmap-container');
+            if(!container) return; container.innerHTML = '';
+            
+            const today = new Date(); const dateCounts = {};
+            allDiaries.forEach(d => { dateCounts[d.sortDate] = (dateCounts[d.sortDate] || 0) + 1; });
+
+            for(let i = 100; i >= 0; i--) {
+                const d = new Date(today); d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().slice(0, 10);
+                const count = dateCounts[dateStr] || 0;
+                
+                const cell = document.createElement('div'); cell.className = 'heatmap-cell'; cell.title = `${dateStr} : ${count} 篇`;
+                
+                if(count === 1) cell.classList.add('level-1'); else if(count === 2) cell.classList.add('level-2'); else if(count === 3) cell.classList.add('level-3'); else if(count > 3) cell.classList.add('level-4');
+                container.appendChild(cell);
+            }
+            container.scrollLeft = container.scrollWidth;
+        }
+
         async function fetchDiaries() {
             const displayArea = document.getElementById('diary-display');
-            showLoading(true);
-            displayArea.innerHTML = '';
-            allDiaries = []; 
+            showLoading(true); displayArea.innerHTML = ''; allDiaries = []; 
             
             try {
                 const q = query(collection(db, "diaries"), where("userId", "==", currentUser.uid), orderBy("sortDate", "desc"));
@@ -832,65 +825,47 @@
                 showLoading(false);
 
                 if (querySnapshot.empty) {
-                    displayArea.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-light);">還沒有日記喔，去匯入系統新增吧！</div>`;
-                    updateStats();
-                    renderCalendar(); 
+                    displayArea.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-light);">還沒有日記喔，去資料系統新增吧！</div>`;
+                    updateStats(); renderCalendar(); renderHeatmap();
                     return;
                 }
 
                 querySnapshot.forEach((doc) => {
                     const diary = { id: doc.id, ...doc.data() };
                     allDiaries.push(diary); 
-
                     const cardWrapper = document.createElement('div');
                     cardWrapper.innerHTML = createCardHTML(diary);
                     displayArea.appendChild(cardWrapper.firstElementChild);
                 });
 
-                updateStats(); 
-                renderCalendar();
-                
-                if (currentSelectedDate) {
-                    showDayDetail(currentSelectedDate);
-                } else {
-                    document.getElementById('day-detail').innerHTML = ''; 
-                }
+                updateStats(); renderCalendar(); renderHeatmap();
+                if (currentSelectedDate) showDayDetail(currentSelectedDate);
+                else document.getElementById('day-detail').innerHTML = ''; 
 
-            } catch (error) {
-                console.error("抓取失敗", error);
-                showLoading(false);
-            }
+            } catch (error) { console.error("抓取失敗", error); showLoading(false); }
         }
 
         window.renderCalendar = function() {
-            const grid = document.getElementById('calendar-grid');
-            const title = document.getElementById('current-month-year');
-            if(!grid) return;
+            const grid = document.getElementById('calendar-grid'); const title = document.getElementById('current-month-year');
+            if(!grid) return; grid.innerHTML = '';
             
-            grid.innerHTML = '';
-            
-            const year = viewDate.getFullYear();
-            const month = viewDate.getMonth();
+            const year = viewDate.getFullYear(); const month = viewDate.getMonth();
             title.innerText = `${year}年 ${month + 1}月`;
 
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate(); const daysInPrevMonth = new Date(year, month, 0).getDate();
 
             ['日','一','二','三','四','五','六'].forEach(d => {
                 const el = document.createElement('div'); el.className = 'day-label'; el.innerText = d; grid.appendChild(el);
             });
 
             for(let i = firstDay; i > 0; i--) {
-                const el = document.createElement('div'); el.className = 'calendar-day other-month';
-                el.innerText = daysInPrevMonth - i + 1; grid.appendChild(el);
+                const el = document.createElement('div'); el.className = 'calendar-day other-month'; el.innerText = daysInPrevMonth - i + 1; grid.appendChild(el);
             }
 
             const markedDates = new Set(allDiaries.map(d => d.sortDate));
             
             for(let i = 1; i <= daysInMonth; i++) {
-                const el = document.createElement('div');
-                el.className = 'calendar-day';
+                const el = document.createElement('div'); el.className = 'calendar-day';
                 const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 
                 if(markedDates.has(dateStr)) el.classList.add('has-event');
@@ -898,19 +873,12 @@
                 if(currentSelectedDate === dateStr) el.classList.add('selected');
                 
                 el.innerText = i;
-                el.onclick = () => {
-                    currentSelectedDate = dateStr;
-                    renderCalendar(); 
-                    showDayDetail(dateStr);
-                };
+                el.onclick = () => { currentSelectedDate = dateStr; renderCalendar(); showDayDetail(dateStr); };
                 grid.appendChild(el);
             }
         };
 
-        window.changeMonth = function(step) {
-            viewDate.setMonth(viewDate.getMonth() + step);
-            renderCalendar();
-        };
+        window.changeMonth = function(step) { viewDate.setMonth(viewDate.getMonth() + step); renderCalendar(); };
 
         window.showDayDetail = function(dateStr) {
             const diaries = allDiaries.filter(d => d.sortDate === dateStr);
@@ -930,11 +898,8 @@
 
         window.onscroll = function() {
             const btn = document.getElementById("back-to-top");
-            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-                btn.style.display = "flex";
-            } else {
-                btn.style.display = "none";
-            }
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) btn.style.display = "flex";
+            else btn.style.display = "none";
         };
     </script>
 </body>
