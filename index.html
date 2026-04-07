@@ -406,7 +406,23 @@
         const userInfo = document.getElementById('user-info');
         const mainNav = document.getElementById('main-nav');
         
-        /* ================== 新增：專屬系統彈窗 控制邏輯 ================== */
+        // ==========================================
+        // 🛡️ 新增：文字防護罩 (避免網頁代碼被執行)
+        // ==========================================
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+        
+        /* ================== 專屬系統彈窗 控制邏輯 ================== */
         window.showCustomModal = function({ title, message, type = 'primary', isAlert = false }) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('custom-modal');
@@ -416,11 +432,9 @@
                 const cancelBtn = document.getElementById('modal-cancel-btn');
                 const confirmBtn = document.getElementById('modal-confirm-btn');
 
-                // 寫入文字
                 titleEl.innerText = title;
                 msgEl.innerText = message;
 
-                // 依照類型切換顏色與圖示
                 if (type === 'danger') {
                     icon.className = 'modal-icon-circle modal-icon-danger';
                     icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
@@ -431,16 +445,13 @@
                     confirmBtn.className = 'modal-btn modal-btn-primary';
                 }
 
-                // 如果只是單純提示，隱藏取消按鈕
                 cancelBtn.style.display = isAlert ? 'none' : 'block';
 
-                // 顯示彈窗
                 modal.classList.add('show');
 
-                // 關閉並回傳結果
                 const closeModal = (result) => {
                     modal.classList.remove('show');
-                    setTimeout(() => resolve(result), 300); // 等待動畫結束
+                    setTimeout(() => resolve(result), 300); 
                 };
 
                 cancelBtn.onclick = () => closeModal(false);
@@ -449,10 +460,6 @@
         };
         /* ============================================================== */
 
-        // 深色模式邏輯
-        const themeToggle = document.getElementById('theme-toggle');
-        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
-        
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -464,16 +471,16 @@
         function updateThemeIcons(theme) {
             const iconHTML = theme === 'dark' ? '<i class="fa-solid fa-sun"></i> <span>淺色模式</span>' : '<i class="fa-solid fa-moon"></i> <span>深色模式</span>';
             const mIconHTML = theme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-            themeToggle.innerHTML = iconHTML;
-            mobileThemeToggle.innerHTML = mIconHTML;
+            document.getElementById('theme-toggle').innerHTML = iconHTML;
+            document.getElementById('mobile-theme-toggle').innerHTML = mIconHTML;
         }
 
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         updateThemeIcons(savedTheme);
 
-        themeToggle.addEventListener('click', toggleTheme);
-        mobileThemeToggle.addEventListener('click', toggleTheme);
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('mobile-theme-toggle').addEventListener('click', toggleTheme);
 
         const showLoading = (show) => { document.getElementById('global-loading').style.display = show ? 'flex' : 'none'; };
 
@@ -517,7 +524,6 @@
 
         loginBtn.addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
         
-        // 🌟 更新登出按鈕：加入漂亮的防呆確認框
         logoutBtn.addEventListener('click', async () => {
             const confirmed = await showCustomModal({
                 title: '確認操作',
@@ -551,7 +557,6 @@
             const dateVal = document.getElementById('new-diary-date').value; 
             const text = document.getElementById('new-diary-content').value.trim();
             
-            // 🌟 換成漂亮提示框
             if(!dateVal || !text) return showCustomModal({ title: '提示', message: '日期跟內容都要填寫喔！', isAlert: true });
             
             showLoading(true);
@@ -586,7 +591,6 @@
             const newDate = document.getElementById('edit-diary-date').value;
             const newText = document.getElementById('edit-diary-content').value.trim();
             
-            // 🌟 換成漂亮提示框
             if(!newDate || !newText) return showCustomModal({ title: '提示', message: '日期跟內容不能為空喔！', isAlert: true });
             
             showLoading(true);
@@ -607,7 +611,6 @@
         const importBtn = document.getElementById('import-btn');
         importBtn.addEventListener('click', async () => {
             const input = document.getElementById('diary-input').value;
-            // 🌟 換成漂亮提示框
             if (!input.trim()) return showCustomModal({ title: '提示', message: '請先貼上內容喔！', isAlert: true });
 
             const regex = /(\d{4}年\d{2}月\d{2}日\([一二三四五六日]\))/g;
@@ -634,7 +637,6 @@
 
             const totalDays = uniqueDates.size;
             
-            // 🌟 更新匯入確認：換成漂亮的 Modal
             const isConfirmed = await showCustomModal({
                 title: '大量匯入確認',
                 message: `即將加入 ${totalDays} 天，共 ${count} 篇日記。\n\n請問是否確定加入？`,
@@ -667,7 +669,6 @@
             }
         });
 
-        // 🌟 更新刪除功能：加入漂亮的防呆確認框
         window.deleteDiary = async function(docId) {
             const confirmed = await showCustomModal({
                 title: '刪除確認',
@@ -711,9 +712,11 @@
 
                     const card = document.createElement('div');
                     card.className = 'diary-card';
+                    
+                    // 🛡️ 套用 escapeHTML 進行防護
                     card.innerHTML = `
                         <div class="diary-header">
-                            <div class="diary-date"><i class="fa-regular fa-calendar-check"></i> ${diary.title}</div>
+                            <div class="diary-date"><i class="fa-regular fa-calendar-check"></i> ${escapeHTML(diary.title)}</div>
                             <div style="display:flex; gap:5px;">
                                 <button class="btn-icon" onclick="editDiary('${doc.id}')" title="編輯這篇日記">
                                     <i class="fa-solid fa-pen"></i>
@@ -723,7 +726,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="diary-content">${diary.text}</div>
+                        <div class="diary-content">${escapeHTML(diary.text)}</div>
                     `;
                     displayArea.appendChild(card);
                 });
@@ -798,10 +801,11 @@
             const detailArea = document.getElementById('day-detail');
             
             if (diaries.length > 0) {
+                // 🛡️ 套用 escapeHTML 進行防護
                 detailArea.innerHTML = diaries.map(diary => `
                     <div class="diary-card" style="margin-top:20px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15); border-color: var(--primary-color);">
                         <div class="diary-header">
-                            <div class="diary-date"><i class="fa-regular fa-calendar-check"></i> ${diary.title}</div>
+                            <div class="diary-date"><i class="fa-regular fa-calendar-check"></i> ${escapeHTML(diary.title)}</div>
                             <div style="display:flex; gap:5px;">
                                 <button class="btn-icon" onclick="editDiary('${diary.id}')" title="編輯這篇日記">
                                     <i class="fa-solid fa-pen"></i>
@@ -811,7 +815,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="diary-content">${diary.text}</div>
+                        <div class="diary-content">${escapeHTML(diary.text)}</div>
                     </div>
                 `).join('');
                 
