@@ -117,6 +117,10 @@
         .btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
         .btn-outline:hover { background-color: var(--bg-color); }
         
+        /* 新增：成功按鈕 (匯出用) */
+        .btn-success { background-color: #10b981; }
+        .btn-success:hover { background-color: #059669; }
+        
         #theme-toggle { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); margin-bottom: 5px;}
         .btn-icon { background: transparent; color: var(--text-light); width: auto; font-size: 1.2em; padding: 5px; }
         .btn-icon:hover { color: var(--primary-color); background: transparent; }
@@ -148,19 +152,25 @@
         .diary-card:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         
         .diary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;}
-        .diary-date { font-size: 1.3em; font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 8px; }
+        .diary-date { font-size: 1.3em; font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;}
+        
+        /* 新增：心情徽章樣式 */
+        .diary-mood-badge { font-size: 0.8em; background: var(--bg-color); padding: 4px 10px; border-radius: 20px; color: var(--text-main); font-weight: normal; border: 1px solid var(--border-color); margin-left: 5px;}
+        
         .diary-content { white-space: pre-wrap; font-size: 1.05em; line-height: 1.8; }
         
         .delete-btn { background: transparent; color: var(--text-light); border: none; width: auto; padding: 5px; }
         .delete-btn:hover { color: var(--danger-color); background: transparent;}
 
-        input[type="date"], textarea.form-control { 
+        /* 表單元素更新：加入 select */
+        input[type="date"], select.form-control, textarea.form-control { 
             width: 100%; padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); 
             background: var(--bg-color); color: var(--text-main); font-family: inherit; font-size: 16px; margin-bottom: 15px; 
             outline: none; transition: border 0.3s;
         }
+        select.form-control { height: 52px; cursor: pointer; }
         textarea.form-control { height: 200px; resize: vertical; }
-        input[type="date"]:focus, textarea.form-control:focus { border-color: var(--primary-color); }
+        input[type="date"]:focus, select.form-control:focus, textarea.form-control:focus { border-color: var(--primary-color); }
 
         /* =============== 日曆專屬樣式 =============== */
         .calendar-card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: var(--shadow); margin-bottom: 25px; border: 1px solid var(--border-color); }
@@ -181,7 +191,7 @@
         .calendar-day.other-month { opacity: 0.3; cursor: default; }
 
         textarea.import-area {
-            width: 100%; height: 300px; padding: 15px; border: 1px solid var(--border-color);
+            width: 100%; height: 200px; padding: 15px; border: 1px solid var(--border-color);
             border-radius: 12px; font-size: 15px; margin: 15px 0; background: var(--card-bg); color: var(--text-main);
             line-height: 1.6; resize: vertical;
         }
@@ -198,7 +208,7 @@
             background: rgba(0, 0, 0, 0.5); z-index: 2000;
             display: flex; align-items: center; justify-content: center;
             opacity: 0; visibility: hidden; transition: 0.3s;
-            backdrop-filter: blur(3px); /* 讓背景有微糊的質感 */
+            backdrop-filter: blur(3px); 
         }
         .modal-overlay.show { opacity: 1; visibility: visible; }
         .modal-box {
@@ -296,7 +306,7 @@
                     <i class="fa-solid fa-pen-to-square"></i> <span>寫新日記</span>
                 </div>
                 <div class="nav-item" onclick="switchView('import-view', this)">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> <span>匯入系統</span>
+                    <i class="fa-solid fa-gear"></i> <span>資料與系統</span>
                 </div>
             </div>
 
@@ -336,8 +346,24 @@
             <div id="write-view" class="view-section">
                 <div class="diary-card" style="margin-top: 0;">
                     <h3 style="margin-bottom: 15px; color: var(--primary-color);"><i class="fa-solid fa-pen"></i> 記錄今天的故事</h3>
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">日期</label>
-                    <input type="date" id="new-diary-date">
+                    
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">日期</label>
+                            <input type="date" id="new-diary-date" style="margin-bottom: 0;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">當下心情</label>
+                            <select id="new-diary-mood" class="form-control" style="margin-bottom: 0;">
+                                <option value="🙂 平靜">🙂 平靜</option>
+                                <option value="😄 開心">😄 開心</option>
+                                <option value="😢 難過">😢 難過</option>
+                                <option value="😡 生氣">😡 生氣</option>
+                                <option value="🥱 疲累">🥱 疲累</option>
+                                <option value="🎉 慶祝">🎉 慶祝</option>
+                            </select>
+                        </div>
+                    </div>
                     
                     <label style="font-weight: bold; display: block; margin-bottom: 5px;">內容</label>
                     <textarea class="form-control" id="new-diary-content" placeholder="今天發生了什麼有趣的事呢？"></textarea>
@@ -353,8 +379,24 @@
                         <button class="btn-icon" onclick="switchView('diary-view', document.querySelectorAll('.nav-item')[1])"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <input type="hidden" id="edit-diary-id">
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">日期</label>
-                    <input type="date" id="edit-diary-date">
+                    
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">日期</label>
+                            <input type="date" id="edit-diary-date" style="margin-bottom: 0;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">當下心情</label>
+                            <select id="edit-diary-mood" class="form-control" style="margin-bottom: 0;">
+                                <option value="🙂 平靜">🙂 平靜</option>
+                                <option value="😄 開心">😄 開心</option>
+                                <option value="😢 難過">😢 難過</option>
+                                <option value="😡 生氣">😡 生氣</option>
+                                <option value="🥱 疲累">🥱 疲累</option>
+                                <option value="🎉 慶祝">🎉 慶祝</option>
+                            </select>
+                        </div>
+                    </div>
                     
                     <label style="font-weight: bold; display: block; margin-bottom: 5px;">內容</label>
                     <textarea class="form-control" id="edit-diary-content"></textarea>
@@ -369,6 +411,14 @@
                     <p style="color: var(--text-light); font-size: 0.9em;">系統會自動辨識「YYYY年MM月DD日(星期)」格式並為您自動切割存檔。</p>
                     <textarea id="diary-input" class="import-area" placeholder="請將 Word 裡的日記全部複製貼到這裡..."></textarea>
                     <button id="import-btn" style="padding: 15px; font-size: 16px;"><i class="fa-solid fa-wand-magic-sparkles"></i> 開始解析並上傳至雲端</button>
+                    
+                    <hr style="border: none; border-top: 1px dashed var(--border-color); margin: 30px 0;">
+                    
+                    <h3 style="margin-bottom: 10px;"><i class="fa-solid fa-download"></i> 匯出與備份</h3>
+                    <p style="color: var(--text-light); font-size: 0.9em; margin-bottom: 15px;">將雲端上的所有日記下載為純文字檔 (TXT) 備份到您的設備中，守護您的珍貴回憶。</p>
+                    <button id="export-btn" class="btn-success" style="padding: 15px; font-size: 16px;">
+                        <i class="fa-solid fa-file-arrow-down"></i> 匯出全部日記 (TXT)
+                    </button>
                 </div>
             </div>
         </main>
@@ -406,9 +456,7 @@
         const userInfo = document.getElementById('user-info');
         const mainNav = document.getElementById('main-nav');
         
-        // ==========================================
-        // 🛡️ 新增：文字防護罩 (避免網頁代碼被執行)
-        // ==========================================
+        // 🛡️ 文字防護罩
         function escapeHTML(str) {
             if (!str) return '';
             return str.replace(/[&<>'"]/g, 
@@ -553,8 +601,10 @@
             });
         });
 
+        // ==================== 寫日記 (支援心情) ====================
         document.getElementById('save-new-btn').onclick = async () => {
             const dateVal = document.getElementById('new-diary-date').value; 
+            const moodVal = document.getElementById('new-diary-mood').value; // 抓取心情
             const text = document.getElementById('new-diary-content').value.trim();
             
             if(!dateVal || !text) return showCustomModal({ title: '提示', message: '日期跟內容都要填寫喔！', isAlert: true });
@@ -564,9 +614,15 @@
             
             try {
                 await setDoc(doc(collection(db, "diaries")), {
-                    userId: currentUser.uid, title: title, text: text, sortDate: dateVal, timestamp: new Date()
+                    userId: currentUser.uid, 
+                    title: title, 
+                    text: text, 
+                    sortDate: dateVal, 
+                    mood: moodVal, // 存入心情
+                    timestamp: new Date()
                 });
                 document.getElementById('new-diary-content').value = ''; 
+                document.getElementById('new-diary-mood').value = '🙂 平靜'; // 恢復預設心情
                 await fetchDiaries(); 
                 switchView('diary-view', document.querySelectorAll('.nav-item')[1]); 
             } catch (e) {
@@ -575,6 +631,7 @@
             showLoading(false);
         };
 
+        // 開啟編輯畫面 (帶入舊心情)
         window.editDiary = function(id) {
             const diary = allDiaries.find(d => d.id === id);
             if(!diary) return;
@@ -582,13 +639,17 @@
             document.getElementById('edit-diary-id').value = diary.id;
             document.getElementById('edit-diary-date').value = diary.sortDate;
             document.getElementById('edit-diary-content').value = diary.text;
+            // 舊日記如果沒有心情，預設給平靜
+            document.getElementById('edit-diary-mood').value = diary.mood || '🙂 平靜'; 
             
             switchView('edit-view', null); 
         };
 
+        // 儲存編輯 (支援心情)
         document.getElementById('save-edit-btn').onclick = async () => {
             const id = document.getElementById('edit-diary-id').value;
             const newDate = document.getElementById('edit-diary-date').value;
+            const newMood = document.getElementById('edit-diary-mood').value; // 抓取新心情
             const newText = document.getElementById('edit-diary-content').value.trim();
             
             if(!newDate || !newText) return showCustomModal({ title: '提示', message: '日期跟內容不能為空喔！', isAlert: true });
@@ -598,7 +659,10 @@
 
             try {
                 await updateDoc(doc(db, "diaries", id), {
-                    title: newTitle, text: newText, sortDate: newDate
+                    title: newTitle, 
+                    text: newText, 
+                    sortDate: newDate,
+                    mood: newMood // 更新心情
                 });
                 await fetchDiaries();
                 switchView('diary-view', document.querySelectorAll('.nav-item')[1]); 
@@ -608,6 +672,45 @@
             showLoading(false);
         };
 
+        // ==================== 匯出功能 ====================
+        document.getElementById('export-btn').addEventListener('click', async () => {
+            if(allDiaries.length === 0) return showCustomModal({ title: '提示', message: '目前雲端上還沒有任何日記喔！', isAlert: true });
+            
+            const confirmed = await showCustomModal({
+                title: '匯出備份',
+                message: `確定要匯出所有 ${allDiaries.length} 篇日記作為備份嗎？`,
+                type: 'primary'
+            });
+            
+            if(!confirmed) return;
+
+            // 將日記依照日期「從舊到新」排序，閱讀起來比較順
+            const sortedDiaries = [...allDiaries].sort((a, b) => a.sortDate.localeCompare(b.sortDate));
+            
+            let textContent = "=== 我的時光日記 完整備份 ===\n\n";
+            sortedDiaries.forEach(diary => {
+                const moodDisplay = diary.mood ? ` [${diary.mood}]` : "";
+                textContent += `${diary.title}${moodDisplay}\n`;
+                textContent += `${diary.text}\n\n`;
+                textContent += `----------------------------------------\n\n`;
+            });
+
+            // 觸發純文字檔下載
+            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            const todayStr = new Date().toISOString().slice(0, 10);
+            link.download = `時光日記備份_${todayStr}.txt`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+
+        // 匯入邏輯
         const importBtn = document.getElementById('import-btn');
         importBtn.addEventListener('click', async () => {
             const input = document.getElementById('diary-input').value;
@@ -652,7 +755,12 @@
             diariesToImport.forEach(diary => {
                 const newDiaryRef = doc(collection(db, "diaries"));
                 batch.set(newDiaryRef, {
-                    userId: currentUser.uid, title: diary.title, text: diary.text, sortDate: diary.sortDate, timestamp: new Date()
+                    userId: currentUser.uid, 
+                    title: diary.title, 
+                    text: diary.text, 
+                    sortDate: diary.sortDate, 
+                    mood: '🙂 平靜', // 大量匯入預設給平靜心情
+                    timestamp: new Date()
                 });
             });
 
@@ -688,6 +796,30 @@
             }
         };
 
+        // 共用卡片生成函數 (支援顯示心情)
+        function createCardHTML(diary) {
+            const moodBadge = diary.mood ? `<span class="diary-mood-badge">${escapeHTML(diary.mood)}</span>` : '';
+            return `
+                <div class="diary-card" style="margin-top:20px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15); border-color: var(--primary-color);">
+                    <div class="diary-header">
+                        <div class="diary-date">
+                            <span><i class="fa-regular fa-calendar-check"></i> ${escapeHTML(diary.title)}</span>
+                            ${moodBadge}
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-icon" onclick="editDiary('${diary.id}')" title="編輯這篇日記">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="delete-btn" onclick="deleteDiary('${diary.id}')" title="刪除這篇日記">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="diary-content">${escapeHTML(diary.text)}</div>
+                </div>
+            `;
+        }
+
         async function fetchDiaries() {
             const displayArea = document.getElementById('diary-display');
             showLoading(true);
@@ -710,25 +842,9 @@
                     const diary = { id: doc.id, ...doc.data() };
                     allDiaries.push(diary); 
 
-                    const card = document.createElement('div');
-                    card.className = 'diary-card';
-                    
-                    // 🛡️ 套用 escapeHTML 進行防護
-                    card.innerHTML = `
-                        <div class="diary-header">
-                            <div class="diary-date"><i class="fa-regular fa-calendar-check"></i> ${escapeHTML(diary.title)}</div>
-                            <div style="display:flex; gap:5px;">
-                                <button class="btn-icon" onclick="editDiary('${doc.id}')" title="編輯這篇日記">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-                                <button class="delete-btn" onclick="deleteDiary('${doc.id}')" title="刪除這篇日記">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="diary-content">${escapeHTML(diary.text)}</div>
-                    `;
-                    displayArea.appendChild(card);
+                    const cardWrapper = document.createElement('div');
+                    cardWrapper.innerHTML = createCardHTML(diary);
+                    displayArea.appendChild(cardWrapper.firstElementChild);
                 });
 
                 updateStats(); 
@@ -801,24 +917,7 @@
             const detailArea = document.getElementById('day-detail');
             
             if (diaries.length > 0) {
-                // 🛡️ 套用 escapeHTML 進行防護
-                detailArea.innerHTML = diaries.map(diary => `
-                    <div class="diary-card" style="margin-top:20px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15); border-color: var(--primary-color);">
-                        <div class="diary-header">
-                            <div class="diary-date"><i class="fa-regular fa-calendar-check"></i> ${escapeHTML(diary.title)}</div>
-                            <div style="display:flex; gap:5px;">
-                                <button class="btn-icon" onclick="editDiary('${diary.id}')" title="編輯這篇日記">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-                                <button class="delete-btn" onclick="deleteDiary('${diary.id}')" title="刪除這篇日記">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="diary-content">${escapeHTML(diary.text)}</div>
-                    </div>
-                `).join('');
-                
+                detailArea.innerHTML = diaries.map(diary => createCardHTML(diary)).join('');
                 setTimeout(() => detailArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
             } else {
                 detailArea.innerHTML = `
